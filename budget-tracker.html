@@ -896,14 +896,18 @@ window.changeMonth = function(dir) {
   if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
   renderAll();
 };
-
+function getTodayLocal() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().split('T')[0];
+}
 window.openAddModal = function() {
   editingKey = null;
   document.getElementById('addModalTitle').textContent = 'Add transaction';
   setType('expense');
   document.getElementById('txName').value   = '';
   document.getElementById('txAmount').value = '';
-  document.getElementById('txDate').value   = new Date().toISOString().slice(0,10);
+  document.getElementById('txDate').value = getTodayLocal();
   document.getElementById('addModalActions').innerHTML = `
     <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
     <button class="btn btn-primary" onclick="saveTransaction()">Save</button>
