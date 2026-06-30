@@ -23,6 +23,17 @@
     --r-sm: 9px;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
+  [data-theme="forest"] {
+    --bg: #0e0e12;
+    --surface: #16161d;
+    --surface2: #1e1e28;
+    --border: #2a2a38;
+    --accent: #10b981;
+    --income: #b8ff6a;
+    --expense: #ff6a9b;
+    --text: #e8e8f0;
+    --text2: #8888a8;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overscroll-behavior: none; }
   body {
@@ -36,11 +47,20 @@
     position: relative;
   }
   #syncStatus {
-    position: fixed; top: 8px; right: 12px; z-index: 500;
+    position: fixed; top: 8px; right: 44px; z-index: 500;
     font-size: 0.65rem; color: var(--text2);
     display: flex; align-items: center; gap: 4px;
     transition: opacity 0.3s;
   }
+  #themeToggle {
+    position: fixed; top: 4px; right: 4px; z-index: 500;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text2); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  #themeToggle:active { opacity: 0.7; }
   #syncDot { width: 6px; height: 6px; border-radius: 50%; background: var(--text2); transition: background 0.3s; }
   #syncDot.ok { background: var(--income); }
   #syncDot.syncing { background: #ffb86a; }
@@ -77,35 +97,38 @@
     font-size: 0.75rem; color: var(--text2);
     min-width: 80px; text-align: center;
   }
-  .wallet-switch {
-    display: flex; gap: 4px;
+  .switch-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .toggle-switch {
+    flex: 1; position: relative;
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--r-sm); padding: 3px; margin-bottom: 12px;
+    border-radius: 100px; padding: 3px;
+    height: 30px; cursor: pointer; user-select: none;
   }
-  .wallet-btn {
-    flex: 1; padding: 9px 4px; text-align: center;
-    font-size: 0.85rem; font-weight: 700; color: var(--text2);
-    cursor: pointer; border-radius: 7px;
-    border: none; background: transparent;
-    font-family: 'Space Grotesk', sans-serif;
-    transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px;
+  .toggle-track { position: relative; display: flex; height: 100%; }
+  .toggle-thumb {
+    position: absolute; top: 0; left: 0;
+    width: 50%; height: 100%;
+    background: var(--surface2);
+    border-radius: 100px;
+    transition: transform 0.22s cubic-bezier(.4,0,.2,1), background 0.2s;
+    z-index: 0;
   }
-  .wallet-btn.active.jpy { background: rgba(124,106,255,0.18); color: var(--accent); }
-  .wallet-btn.active.thb { background: rgba(184,255,106,0.15); color: var(--income); }
-  .period-switch {
-    display: flex; gap: 4px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--r-sm); padding: 3px; margin-bottom: 12px;
+  .toggle-switch.right-active .toggle-thumb { transform: translateX(100%); }
+  .toggle-labels { position: relative; z-index: 1; display: flex; width: 100%; height: 100%; }
+  .toggle-label {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700; color: var(--text2);
+    transition: color 0.2s; gap: 4px;
   }
-  .period-btn {
-    flex: 1; padding: 7px 4px; text-align: center;
-    font-size: 0.75rem; font-weight: 600; color: var(--text2);
-    cursor: pointer; border-radius: 7px;
-    border: none; background: transparent;
-    font-family: 'Space Grotesk', sans-serif;
-    transition: all 0.15s;
-  }
-  .period-btn.active { background: var(--surface2); color: var(--text); }
+  .toggle-switch#walletSwitch.left-active .toggle-label.left,
+  .toggle-switch#walletSwitch.right-active .toggle-label.right { color: var(--text); }
+  .toggle-switch#periodSwitch .toggle-label.active-label,
+  .toggle-switch#periodSwitch.left-active .toggle-label.left,
+  .toggle-switch#periodSwitch.right-active .toggle-label.right { color: var(--text); }
+  .toggle-switch.left-active .toggle-thumb { transform: translateX(0); }
+  #walletSwitch.left-active .toggle-thumb { background: rgba(124,106,255,0.22); }
+  [data-theme="forest"] #walletSwitch.left-active .toggle-thumb { background: rgba(106,255,138,0.22); }
+  #walletSwitch.right-active .toggle-thumb { background: rgba(184,255,106,0.18); }
   .summary {
     padding: 0 16px 16px;
     display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
@@ -165,16 +188,18 @@
     border-radius: var(--r); padding: 14px 16px;
   }
   .budget-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
-  .budget-name { font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
+  .budget-name { font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; min-width: 0; flex-shrink: 1; }
   .budget-nums {
     font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--text2);
-    text-align: right; display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    text-align: right; flex-shrink: 0;
   }
   .budget-nums span { color: var(--text); }
+  .budget-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .pct-pill {
-    font-family: 'Space Mono', monospace; font-size: 0.68rem; font-weight: 700;
-    padding: 2px 7px; border-radius: 100px;
+    font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700;
+    padding: 3px 9px; border-radius: 100px;
     background: var(--surface2); flex-shrink: 0;
+    min-width: 42px; text-align: center;
   }
   .pct-pill.ok { color: var(--income); }
   .pct-pill.warn { color: #ffb86a; }
@@ -280,6 +305,7 @@
   <div id="syncDot"></div>
   <span id="syncText">connecting…</span>
 </div>
+<button id="themeToggle" onclick="toggleTheme()">🌲</button>
 
 <div class="topbar">
   <div class="topbar-row">
@@ -294,14 +320,25 @@
     </div>
   </div>
 
-  <div class="wallet-switch">
-    <button class="wallet-btn jpy active" id="walletJpyBtn" onclick="switchWallet('JPY')">¥ Yen</button>
-    <button class="wallet-btn thb" id="walletThbBtn" onclick="switchWallet('THB')">฿ Baht</button>
-  </div>
-
-  <div class="period-switch">
-    <button class="period-btn active" id="periodMonthBtn" onclick="switchPeriod('month')">This Month</button>
-    <button class="period-btn" id="periodAllBtn" onclick="switchPeriod('all')">All Time</button>
+  <div class="switch-row">
+    <div class="toggle-switch left-active" id="walletSwitch" onclick="cycleWallet()">
+      <div class="toggle-track">
+        <div class="toggle-thumb"></div>
+        <div class="toggle-labels">
+          <div class="toggle-label left">¥ Yen</div>
+          <div class="toggle-label right">฿ Baht</div>
+        </div>
+      </div>
+    </div>
+    <div class="toggle-switch left-active" id="periodSwitch" onclick="cyclePeriod()">
+      <div class="toggle-track">
+        <div class="toggle-thumb"></div>
+        <div class="toggle-labels">
+          <div class="toggle-label left">This Month</div>
+          <div class="toggle-label right">All Time</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="summary">
@@ -486,23 +523,33 @@ function getFilteredTx() {
   return all.filter(t => t.date && t.date.startsWith(mk));
 }
 
-window.switchWallet = function(wid) {
+window.cycleWallet = function() {
+  const next = currentWallet === 'JPY' ? 'THB' : 'JPY';
+  switchWalletInternal(next);
+};
+function switchWalletInternal(wid) {
   currentWallet = wid;
-  document.getElementById('walletJpyBtn').classList.toggle('active', wid === 'JPY');
-  document.getElementById('walletThbBtn').classList.toggle('active', wid === 'THB');
+  const sw = document.getElementById('walletSwitch');
+  sw.classList.toggle('left-active', wid === 'JPY');
+  sw.classList.toggle('right-active', wid === 'THB');
   document.getElementById('logoMark').textContent = WALLETS[wid].symbol;
   renderAll();
-};
+}
 
-window.switchPeriod = function(p) {
+window.cyclePeriod = function() {
+  const next = currentPeriod === 'month' ? 'all' : 'month';
+  switchPeriodInternal(next);
+};
+function switchPeriodInternal(p) {
   currentPeriod = p;
-  document.getElementById('periodMonthBtn').classList.toggle('active', p === 'month');
-  document.getElementById('periodAllBtn').classList.toggle('active', p === 'all');
+  const sw = document.getElementById('periodSwitch');
+  sw.classList.toggle('left-active', p === 'month');
+  sw.classList.toggle('right-active', p === 'all');
   const disable = p === 'all';
   document.getElementById('prevMonthBtn').classList.toggle('disabled', disable);
   document.getElementById('nextMonthBtn').classList.toggle('disabled', disable);
   renderAll();
-};
+}
 
 function renderAll() {
   updateMonthLabel();
@@ -587,12 +634,24 @@ function renderBudgets() {
     el.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><p>No budgets set yet.<br>Tap "Edit budgets" to set limits.</p></div>`;
     return;
   }
+  // In All Time mode, scale each category's monthly limit by the number of
+  // distinct months that have any expense data, so the bar reflects a
+  // cumulative budget across the whole period instead of just one month's limit.
+  let monthMultiplier = 1;
+  if (currentPeriod === 'all') {
+    const allExpenseDates = Object.values(currentTx())
+      .filter(t => t.type === 'expense' && t.date)
+      .map(t => t.date.slice(0,7));
+    const distinctMonths = new Set(allExpenseDates);
+    monthMultiplier = Math.max(distinctMonths.size, 1);
+  }
   let html = '';
   EXPENSE_CATS.forEach(cat => {
     const limit = budgets[cat.id] || 0;
     if (!limit) return;
+    const scaledLimit = limit * monthMultiplier;
     const spent = txs.filter(t => t.cat===cat.id).reduce((s,t) => s+t.amount, 0);
-    const rawPct = (spent/limit)*100;
+    const rawPct = (spent/scaledLimit)*100;
     const pct   = Math.min(rawPct, 100);
     const pctDisplay = Math.round(rawPct);
     const barCls = rawPct < 70 ? 'ok' : rawPct < 90 ? 'warn' : 'over';
@@ -600,9 +659,9 @@ function renderBudgets() {
       <div class="budget-card">
         <div class="budget-header">
           <div class="budget-name">${cat.icon} ${cat.name}</div>
-          <div class="budget-nums">
+          <div class="budget-right">
+            <div class="budget-nums"><span>${fmt(spent)}</span> / ${fmt(scaledLimit)}</div>
             <span class="pct-pill ${barCls}">${pctDisplay}%</span>
-            <span>${fmt(spent)}</span> / ${fmt(limit)}
           </div>
         </div>
         <div class="bar-wrap"><div class="bar-fill ${barCls}" style="width:${pct}%"></div></div>
@@ -812,6 +871,23 @@ window.saveBudgets = async function() {
 
 setType('expense');
 updateMonthLabel();
+
+// ── Theme toggle ───────────────────────────────────────────────────────────────
+let currentTheme = 'dark';
+window.toggleTheme = function() {
+  currentTheme = currentTheme === 'dark' ? 'forest' : 'dark';
+  applyTheme();
+};
+function applyTheme() {
+  if (currentTheme === 'forest') {
+    document.documentElement.setAttribute('data-theme', 'forest');
+    document.getElementById('themeToggle').textContent = '🌑';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    document.getElementById('themeToggle').textContent = '🌲';
+  }
+}
+applyTheme();
 </script>
 </body>
 </html>
