@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notion → Budget Migration v2</title>
+<style>
+  :root {
+    --bg: #0e0e12;
+    --surface: #16161d;
+    --surface2: #1e1e28;
+    --border: #2a2a38;
+    --accent: #7c6aff;
+    --income: #b8ff6a;
+    --expense: #ff6a9b;
+    --text: #e8e8f0;
+    --text2: #8888a8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg); color: var(--text);
+    max-width: 720px; margin: 0 auto; padding: 24px 16px 60px;
+  }
+  h1 { font-size: 1.3rem; margin-bottom: 6px; }
+  p.sub { color: var(--text2); font-size: 0.85rem; margin-bottom: 20px; }
+  label { display:block; font-size:0.8rem; color:var(--text2); margin-bottom:6px; margin-top:18px; }
+  textarea {
+    width: 100%; min-height: 220px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; color: var(--text);
+    font-family: 'Space Mono', monospace; font-size: 0.8rem; padding: 12px;
+    resize: vertical;
+  }
+  select {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); padding: 8px 10px; font-size: 0.85rem;
+  }
+  button {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; padding: 12px 20px; font-weight: 700;
+    font-size: 0.95rem; cursor: pointer; margin-top: 16px;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary { background: var(--surface2); color: var(--text2); border:1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.8rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--text2); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; }
+  .cat-badge { display:inline-block; padding:2px 8px; border-radius:6px; background: var(--surface2); font-size: 0.72rem; }
+  .cat-badge.unmapped { background: rgba(255,106,155,0.15); color: var(--expense); }
+  select.cat-fix {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); font-size: 0.75rem; padding: 3px 6px;
+  }
+  #status { margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 0.85rem; display:none; }
+  #status.ok { background: rgba(184,255,106,0.1); color: var(--income); display:block; }
+  #status.err { background: rgba(255,106,155,0.1); color: var(--expense); display:block; }
+  #status.busy { background: rgba(124,106,255,0.1); color: var(--accent); display:block; }
+  .row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+  .summary-box { background: var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px; margin-top:14px; font-size:0.85rem; }
+  code { background: var(--surface2); padding: 1px 5px; border-radius: 4px; font-size:0.78rem; }
+</style>
+</head>
+<body>
+
+<h1>Notion → Budget Tracker Migration (v2)</h1>
+<p class="sub">Paste CSV with columns <b>Name, Category, Amount, Date</b>. Name = transaction description, Category = used for mapping to the app's categories.</p>
+
+<label>Transaction type for this batch</label>
+<select id="txType" onchange="renderUnmappedHint()">
+  <option value="expense">Expense</option>
+  <option value="income">Income</option>
+</select>
+
+<label>Paste CSV content (columns: Name, Category, Amount, Date)</label>
+<textarea id="csvInput" placeholder="Name,Category,Amount,Date
+Food,Food,¥1284,27-Jun-26
+ICOCA,Transport,¥5000,13-Jun-26
+Fitness,Utilities,¥5940,26-Jun-26"></textarea>
+
+<div class="row">
+  <button onclick="parsePreview()">Preview</button>
+  <button class="secondary" onclick="document.getElementById('csvInput').value=''">Clear</button>
+</div>
+
+<div id="previewWrap" style="display:none">
+  <div class="summary-box" id="summaryBox"></div>
+  <table>
+    <thead><tr><th>Name</th><th>Notion Category</th><th>Mapped Category</th><th>Amount</th><th>Date</th></tr></thead>
+    <tbody id="previewBody"></tbody>
+  </table>
+  <button id="importBtn" onclick="runImport()">Import to Firebase</button>
+</div>
+
+<div id="status"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC5A7IyexkTnpDs0ZS1Gzq9HZRkiJEQWN4",
+  authDomain: "budget-tracker-dc959.firebaseapp.com",
+  databaseURL: "https://budget-tracker-dc959-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "budget-tracker-dc959",
+  storageBucket: "budget-tracker-dc959.firebasestorage.app",
+  messagingSenderId: "325571002459",
+  appId: "1:325571002459:web:a10536686cfbe04a827f7e"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── Current live-app categories ──
+const EXPENSE_CATS = [
+  { id:'food',        name:'Food',          icon:'🥦' },
+  { id:'shopping',    name:'Shopping',      icon:'🛍️' },
+  { id:'transport',   name:'Transport',     icon:'🚲' },
+  { id:'travel',      name:'Travel',        icon:'✈️' },
+  { id:'utilities',   name:'Utilities',     icon:'⚡️' },
+  { id:'furniture',   name:'Furniture',     icon:'🏠' },
+  { id:'daily_used',  name:'Daily used',    icon:'📆' },
+  { id:'gifts',       name:'Gifts',         icon:'🎁' },
+  { id:'transfer_out',name:'Transfer out',  icon:'💸' },
+  { id:'other',       name:'Other',         icon:'📦' },
+];
+const INCOME_CATS = [
+  { id:'work',        name:'Work',        icon:'💼' },
+  { id:'transfer_in', name:'Transfer in', icon:'💸' },
+];
+
+// Notion "Category" (lowercase, normalized) -> app category id
+const EXPENSE_NAME_MAP = {};
+EXPENSE_CATS.forEach(c => { EXPENSE_NAME_MAP[c.name.toLowerCase()] = c.id; EXPENSE_NAME_MAP[c.id] = c.id; });
+// aliases seen in real Notion export
+Object.assign(EXPENSE_NAME_MAP, {
+  'daily used': 'daily_used',
+  'dailyused': 'daily_used',
+  'transfer out': 'transfer_out',
+  'transferout': 'transfer_out',
+});
+
+const INCOME_NAME_MAP = {};
+INCOME_CATS.forEach(c => { INCOME_NAME_MAP[c.name.toLowerCase()] = c.id; INCOME_NAME_MAP[c.id] = c.id; });
+Object.assign(INCOME_NAME_MAP, {
+  'salary': 'work',
+  'freelance': 'work',
+  'job': 'work',
+  'transfer in': 'transfer_in',
+  'transferin': 'transfer_in',
+});
+
+let parsedRows = [];
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], next = text[i+1];
+    if (inQuotes) {
+      if (c === '"' && next === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (field !== '' || row.length) { row.push(field); rows.push(row); row = []; field = ''; }
+        if (c === '\r' && next === '\n') i++;
+      } else field += c;
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.length && r.some(c => c.trim() !== ''));
+}
+
+function cleanCategoryName(raw) {
+  if (!raw) return '';
+  const firstPart = raw.split(',')[0];
+  return firstPart.replace(/\(https?:\/\/[^)]*\)/g, '').trim();
+}
+
+function parseAmount(raw) {
+  return parseFloat(String(raw).replace(/[¥,\s]/g, '')) || 0;
+}
+
+function parseNotionDate(raw) {
+  raw = raw.trim();
+  let d = new Date(raw);
+  if (isNaN(d)) {
+    const m = raw.match(/(\d{1,2})-([A-Za-z]{3})-(\d{2})/);
+    if (m) d = new Date(`${m[2]} ${m[1]}, 20${m[3]}`);
+  }
+  if (isNaN(d)) return null;
+  const y = d.getFullYear(), mo = String(d.getMonth()+1).padStart(2,'0'), da = String(d.getDate()).padStart(2,'0');
+  return `${y}-${mo}-${da}`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+window.parsePreview = function() {
+  const csvText = document.getElementById('csvInput').value.trim();
+  const txType = document.getElementById('txType').value;
+  const status = document.getElementById('status');
+  status.className = ''; status.style.display = 'none';
+  if (!csvText) { alert('Paste CSV content first.'); return; }
+
+  const rows = parseCSV(csvText);
+  if (!rows.length) { alert('Could not parse any rows.'); return; }
+
+  const header = rows[0].map(h => h.trim().toLowerCase());
+  const nameIdx = header.indexOf('name');
+  const catIdx  = header.indexOf('category');
+  const amtIdx  = header.indexOf('amount');
+  const dateIdx = header.indexOf('date');
+  const dataRows = (nameIdx >= 0 || catIdx >= 0) ? rows.slice(1) : rows;
+  const ni = nameIdx>=0?nameIdx:0, ci = catIdx>=0?catIdx:1, ai = amtIdx>=0?amtIdx:2, di = dateIdx>=0?dateIdx:3;
+
+  const map = txType === 'expense' ? EXPENSE_NAME_MAP : INCOME_NAME_MAP;
+  const catList = txType === 'expense' ? EXPENSE_CATS : INCOME_CATS;
+  const fallback = txType === 'expense' ? 'other' : 'transfer_in';
+
+  parsedRows = [];
+  let unmapped = 0;
+
+  dataRows.forEach(r => {
+    const name = (r[ni] || '').trim();
+    const rawCat = cleanCategoryName(r[ci] || '');
+    if (!name && !rawCat) return;
+    const mappedCat = map[rawCat.toLowerCase()] || null;
+    const amount = parseAmount(r[ai]);
+    const date = parseNotionDate(r[di] || '');
+    if (!mappedCat) unmapped++;
+    parsedRows.push({
+      name, rawCat, cat: mappedCat || fallback, mapped: !!mappedCat,
+      amount, date, type: txType
+    });
+  });
+
+  document.getElementById('summaryBox').innerHTML =
+    `Parsed <b>${parsedRows.length}</b> rows as <b>${txType}</b>. ` +
+    (unmapped ? `<span style="color:var(--expense)">${unmapped} unmapped — please fix using the dropdown before importing.</span>` : `All categories mapped successfully.`);
+
+  document.getElementById('previewBody').innerHTML = parsedRows.map((r, idx) => `
+    <tr>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.rawCat)}</td>
+      <td>
+        <select class="cat-fix" data-idx="${idx}" onchange="updateRowCat(${idx}, this.value)">
+          ${catList.map(c => `<option value="${c.id}" ${c.id===r.cat?'selected':''}>${c.icon} ${c.name}</option>`).join('')}
+        </select>
+        ${r.mapped ? '' : '<span class="cat-badge unmapped" style="margin-left:6px">unmapped</span>'}
+      </td>
+      <td>¥${r.amount.toLocaleString()}</td>
+      <td>${r.date || '<span style="color:var(--expense)">invalid date</span>'}</td>
+    </tr>`).join('');
+
+  document.getElementById('previewWrap').style.display = 'block';
+};
+
+window.updateRowCat = function(idx, val) {
+  parsedRows[idx].cat = val;
+  parsedRows[idx].mapped = true;
+};
+
+window.runImport = async function() {
+  const status = document.getElementById('status');
+  const btn = document.getElementById('importBtn');
+  const validRows = parsedRows.filter(r => r.date && r.amount > 0);
+
+  if (!validRows.length) { alert('No valid rows to import.'); return; }
+  if (!confirm(`Import ${validRows.length} transactions into Firebase? This cannot be undone automatically.`)) return;
+
+  btn.disabled = true;
+  status.className = 'busy';
+  status.style.display = 'block';
+  status.textContent = `Importing 0 / ${validRows.length}...`;
+
+  let done = 0, failed = 0;
+  for (const r of validRows) {
+    try {
+      await push(ref(db, 'transactions'), {
+        type: r.type, name: r.name || r.rawCat, amount: r.amount, cat: r.cat, date: r.date
+      });
+      done++;
+    } catch (e) {
+      failed++;
+      console.error('Failed row:', r, e);
+    }
+    status.textContent = `Importing ${done + failed} / ${validRows.length}...`;
+  }
+
+  btn.disabled = false;
+  status.className = failed ? 'err' : 'ok';
+  status.textContent = failed
+    ? `Done with errors: ${done} imported, ${failed} failed (see console).`
+    : `Successfully imported ${done} transactions! Check your app or Firebase console.`;
+};
+</script>
+</body>
+</html>
