@@ -453,7 +453,7 @@ let currentWallet = 'JPY';
 let currentPeriod = 'month';
 
 const EXPENSE_CATS = [
-  { id:'food',        name:'Food',          icon:'🥦' },
+  { id:'food',        name:'Food',          icon:'🍙' },
   { id:'shopping',    name:'Shopping',      icon:'🛍️' },
   { id:'transport',   name:'Transport',     icon:'🚲' },
   { id:'travel',      name:'Travel',        icon:'✈️' },
@@ -643,7 +643,7 @@ function renderBudgets() {
       .filter(t => t.type === 'expense' && t.date)
       .map(t => t.date.slice(0,7));
     const distinctMonths = new Set(allExpenseDates);
-    monthMultiplier = Math.max(distinctMonths.size, 1);
+    monthMultiplier = Math.max(distinctMonths.size - 1, 1);
   }
   let html = '';
   EXPENSE_CATS.forEach(cat => {
