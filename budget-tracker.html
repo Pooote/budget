@@ -448,20 +448,20 @@ const db = getDatabase(app);
 
 // ── Categories ────────────────────────────────────────────────────────────────
 const EXPENSE_CATS = [
-  { id:'food',      name:'Food & Drink',  icon:'🍜' },
-  { id:'transport', name:'Transport',     icon:'🚌' },
-  { id:'shopping',  name:'Shopping',      icon:'🛍️' },
-  { id:'health',    name:'Health',        icon:'💊' },
-  { id:'housing',   name:'Housing',       icon:'🏠' },
-  { id:'entertain', name:'Entertainment', icon:'🎮' },
-  { id:'education', name:'Education',     icon:'📚' },
-  { id:'other',     name:'Other',         icon:'📦' },
+  { id:'food',        name:'Food',          icon:'🥦' },
+  { id:'shopping',    name:'Shopping',      icon:'🛍️' },
+  { id:'transport',   name:'Transport',     icon:'🚲' },
+  { id:'travel',      name:'Travel',        icon:'✈️' },
+  { id:'utilities',   name:'Utilities',     icon:'⚡️' },
+  { id:'furniture',   name:'Furniture',     icon:'🏠' },
+  { id:'daily_used',  name:'Daily used',    icon:'📆' },
+  { id:'gifts',       name:'Gifts',         icon:'🎁' },
+  { id:'transfer_out',name:'Transfer out',  icon:'💸' },
+  { id:'other',       name:'Other',         icon:'📦' },
 ];
 const INCOME_CATS = [
-  { id:'salary',   name:'Salary',       icon:'💼' },
-  { id:'freelance',name:'Freelance',    icon:'💻' },
-  { id:'gift',     name:'Gift',         icon:'🎁' },
-  { id:'other_in', name:'Other income', icon:'💰' },
+  { id:'work',        name:'Work',        icon:'💼' },
+  { id:'transfer_in', name:'Transfer in', icon:'💸' },
 ];
 const ALL_CATS = [...EXPENSE_CATS, ...INCOME_CATS];
 function catById(id) { return ALL_CATS.find(c => c.id === id) || { name: id, icon: '•' }; }
