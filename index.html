@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Apps</title>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #0e0e12; color: #e8e8f0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 100vh; gap: 16px; padding: 20px;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 8px; }
+  a {
+    display: block; width: 100%; max-width: 320px;
+    padding: 18px 24px; border-radius: 14px;
+    background: #16161d; border: 1px solid #2a2a38;
+    color: #e8e8f0; text-decoration: none;
+    font-size: 1rem; font-weight: 600;
+    transition: border-color 0.2s;
+  }
+  a:hover { border-color: #7c6aff; }
+  .icon { font-size: 1.4rem; margin-bottom: 4px; display: block; }
+  .sub { font-size: 0.78rem; color: #8888a8; font-weight: 400; margin-top: 2px; display: block; }
+</style>
+</head>
+<body>
+  <h1>My Productivity Apps</h1>
+  <a href="habit-tracker.html">
+    <span class="icon">✦</span>
+    Habit Tracker
+    <span class="sub">Streaks, heatmap, daily check-ins</span>
+  </a>
+  <a href="budget-tracker.html">
+    <span class="icon">¥</span>
+    Budget Tracker
+    <span class="sub">Transactions, budgets, analytics</span>
+  </a>
+</body>
+</html>
