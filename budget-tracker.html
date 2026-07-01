@@ -198,7 +198,12 @@
   .budget-card {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--r); padding: 14px 16px;
+    cursor: pointer; transition: border-color 0.15s;
   }
+  .budget-card:active { border-color: var(--accent); }
+  /* Budget cards in analytics are NOT clickable */
+  .budget-card.no-click { cursor: default; }
+  .budget-card.no-click:active { border-color: var(--border); }
   .budget-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
   .budget-name { font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; min-width: 0; flex-shrink: 1; }
   .budget-nums {
@@ -272,9 +277,10 @@
     color: #fff; font-size: 26px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 4px 20px rgba(124,106,255,0.4);
-    z-index: 200; transition: transform 0.15s;
+    z-index: 200; transition: transform 0.15s, opacity 0.2s;
   }
   .fab:active { transform: scale(0.92); }
+  .fab.hidden { opacity: 0; pointer-events: none; }
   .modal-overlay {
     display: none; position: fixed; inset: 0; z-index: 300;
     background: rgba(0,0,0,0.7);
@@ -427,9 +433,6 @@
     <div id="txList"><div class="loading">Connecting to database…</div></div>
   </div>
   <div class="panel" id="panel-budgets">
-    <div style="display:flex;justify-content:flex-end">
-      <button class="btn btn-ghost" style="flex:none;padding:8px 14px;font-size:0.8rem;border-radius:var(--r-sm)" onclick="openBudgetModal()">Edit budgets</button>
-    </div>
     <div id="budgetList"></div>
   </div>
   <div class="panel" id="panel-subs">
@@ -441,8 +444,9 @@
   </div>
 </div>
 
-<button class="fab" onclick="openAddModal()">+</button>
+<button class="fab" id="mainFab" onclick="onFabClick()">+</button>
 
+<!-- Add / Edit Transaction Modal -->
 <div class="modal-overlay" id="addModal" onclick="closeAddModal(event)">
   <div class="modal">
     <div class="modal-title">
@@ -478,6 +482,44 @@
   </div>
 </div>
 
+<!-- Add / Edit Budget Category Modal -->
+<div class="modal-overlay" id="budgetCatModal" onclick="closeBudgetCatModal(event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="budgetCatModalTitle">Set budget limit</span>
+      <button class="modal-close" onclick="closeBudgetCatModal()">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+      <div class="tx-icon" id="budgetCatIcon" style="font-size:22px;width:44px;height:44px;border-radius:12px;"></div>
+      <div>
+        <div style="font-weight:700;font-size:1rem;" id="budgetCatName"></div>
+        <div style="font-size:0.75rem;color:var(--text2);">Monthly spending limit</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Limit amount</label>
+      <input type="number" id="budgetCatAmount" placeholder="0" min="0" inputmode="decimal" />
+    </div>
+    <div class="modal-actions" id="budgetCatActions">
+      <button class="btn btn-ghost" onclick="closeBudgetCatModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBudgetCat()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Budget: pick a category first -->
+<div class="modal-overlay" id="budgetPickModal" onclick="closeBudgetPickModal(event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Add budget limit</span>
+      <button class="modal-close" onclick="closeBudgetPickModal()">✕</button>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text2);margin-bottom:14px;">Choose a category to set a monthly spending limit for:</p>
+    <div id="budgetPickList" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
+
+<!-- Edit Budgets (legacy bulk edit — kept for reference but no longer shown) -->
 <div class="modal-overlay" id="budgetModal" onclick="closeBudgetModal(event)">
   <div class="modal">
     <div class="modal-title">
@@ -492,6 +534,7 @@
   </div>
 </div>
 
+<!-- Add / Edit Subscription Modal -->
 <div class="modal-overlay" id="subModal" onclick="closeSubModal(event)">
   <div class="modal">
     <div class="modal-title">
@@ -611,13 +654,6 @@ Object.entries(WALLETS).forEach(([wid, w]) => {
 });
 
 // ── Subscriptions: monthly auto-add engine ─────────────────────────────────
-// Each subscription remembers the last month ('YYYY-MM') a transaction was
-// generated for it. Whenever subscription data loads (app open, or after any
-// change), we check every active subscription and, if the real current month
-// is newer than its lastAdded month, we push one transaction per missing
-// month (so it catches up even if the app wasn't opened for a while) and
-// bump lastAdded. This is what makes a subscription "automatically add every
-// month" without needing a server — it settles up the moment the app is used.
 const subProcessing = new Set();
 
 function incrementMonthKey(mk) {
@@ -637,7 +673,7 @@ function actualNowMK() {
   return monthKey(d.getFullYear(), d.getMonth());
 }
 function clampDayToMonth(mk, day) {
-  const [y, m] = mk.split('-').map(Number); // m is 1-indexed
+  const [y, m] = mk.split('-').map(Number);
   const lastDay = new Date(y, m, 0).getDate();
   return Math.min(day, lastDay);
 }
@@ -650,7 +686,7 @@ async function processSubscriptions(wid) {
     const lockKey = `${wid}:${key}`;
     if (subProcessing.has(lockKey)) continue;
     const startFrom = sub.lastAdded ? incrementMonthKey(sub.lastAdded) : nowMK;
-    if (startFrom > nowMK) continue; // already up to date
+    if (startFrom > nowMK) continue;
     subProcessing.add(lockKey);
     try {
       await catchUpSubscription(wid, key, sub, startFrom, nowMK);
@@ -725,6 +761,27 @@ function switchPeriodInternal(p) {
   renderAll();
 }
 
+// ── FAB: show/hide and action based on active tab ────────────────────────────
+function updateFab(tabName) {
+  const fab = document.getElementById('mainFab');
+  if (tabName === 'analytics') {
+    fab.classList.add('hidden');
+  } else {
+    fab.classList.remove('hidden');
+  }
+}
+
+window.onFabClick = function() {
+  const activeTab = document.querySelector('.tab.active')?.dataset.tab;
+  if (activeTab === 'subs') {
+    openSubModal();
+  } else if (activeTab === 'budgets') {
+    openBudgetPickModal();
+  } else {
+    openAddModal();
+  }
+};
+
 function renderAll() {
   updateMonthLabel();
   updateSummary();
@@ -762,9 +819,6 @@ function updateSummary() {
   [incomeEl, expenseEl, balEl].forEach(fitSumValue);
 }
 
-// Shrinks a sum-value's font-size in small steps until the full raw number
-// fits on one line without being clipped — so a 7-digit amount stays whole
-// instead of ending in "…" or getting abbreviated to "7M" / "5k".
 function fitSumValue(el) {
   const maxPx = 15.2, minPx = 8.5, step = 0.5;
   let size = maxPx;
@@ -822,12 +876,9 @@ function renderBudgets() {
   const el  = document.getElementById('budgetList');
   const hasBudgets = EXPENSE_CATS.some(c => budgets[c.id] > 0);
   if (!hasBudgets) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><p>No budgets set yet.<br>Tap "Edit budgets" to set limits.</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><p>No budgets set yet.<br>Tap + to add a category limit.</p></div>`;
     return;
   }
-  // In All Time mode, scale each category's monthly limit by the number of
-  // distinct months that have any expense data, so the bar reflects a
-  // cumulative budget across the whole period instead of just one month's limit.
   let monthMultiplier = 1;
   if (currentPeriod === 'all') {
     const allExpenseDates = Object.values(currentTx())
@@ -847,7 +898,7 @@ function renderBudgets() {
     const pctDisplay = Math.round(rawPct);
     const barCls = rawPct < 70 ? 'ok' : rawPct < 90 ? 'warn' : 'over';
     html += `
-      <div class="budget-card">
+      <div class="budget-card" onclick="window._editBudgetCat('${cat.id}')">
         <div class="budget-header">
           <div class="budget-name">${cat.icon} ${cat.name}</div>
           <div class="budget-right">
@@ -889,7 +940,7 @@ function renderSubs() {
   el.innerHTML = html;
 }
 
-let analyticsFilterCat = null; // null = all categories
+let analyticsFilterCat = null;
 
 function renderAnalyticsFilters() {
   const txs = getFilteredTx().filter(t => t.type==='expense');
@@ -912,10 +963,7 @@ window._setAnalyticsFilter = function(catId) {
 };
 
 function renderLineGraph(txs) {
-  // In "This Month" mode, plot one point per day.
-  // In "All Time" mode, group into one point per month instead (avoids a huge crowded daily axis).
-  let buckets = []; // list of { key, label }
-
+  let buckets = [];
   if (currentPeriod === 'month') {
     const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
     for (let d = 1; d <= daysInMonth; d++) {
@@ -961,7 +1009,6 @@ function renderLineGraph(txs) {
   const linePath = points.map((p,i) => `${i===0?'M':'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
   const areaPath = linePath + ` L${points[points.length-1].x.toFixed(1)},${padTop+chartH} L${points[0].x.toFixed(1)},${padTop+chartH} Z`;
 
-  // Y-axis: amount gridlines + labels (0, mid, max)
   const yTicks = [0, max/2, max];
   const yGridLines = yTicks.map(v => {
     const y = padTop + chartH - (v / max) * chartH;
@@ -969,7 +1016,6 @@ function renderLineGraph(txs) {
             <text x="${(padLeft-6).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="end" class="line-tooltip">${fmt(v)}</text>`;
   }).join('');
 
-  // X-axis: labels shown every Nth point to avoid crowding
   const labelEvery = currentPeriod === 'month' ? Math.ceil(buckets.length / 8) : Math.max(Math.ceil(buckets.length / 8), 1);
   const labels = points.map((p,i) => {
     if (i % labelEvery !== 0 && i !== points.length-1) return '';
@@ -1000,10 +1046,6 @@ function renderLineGraph(txs) {
     </div>`;
 }
 
-function dateToStr(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
 function renderAnalytics() {
   renderAnalyticsFilters();
   let txs = getFilteredTx().filter(t => t.type==='expense');
@@ -1015,7 +1057,6 @@ function renderAnalytics() {
   }
 
   const lineHtml = renderLineGraph(txs);
-
   const total = txs.reduce((s,t) => s+t.amount, 0);
   const bycat = {};
   txs.forEach(t => { bycat[t.cat] = (bycat[t.cat]||0) + t.amount; });
@@ -1054,7 +1095,7 @@ function renderAnalytics() {
       ${sorted.map(([catId, amt], i) => {
         const cat = catById(catId);
         const pct = Math.round((amt/total)*100);
-        return `<div class="budget-card">
+        return `<div class="budget-card no-click">
           <div class="budget-header">
             <div class="budget-name" style="color:${COLORS[i%COLORS.length]}">${cat.icon} ${cat.name}</div>
             <div class="budget-nums"><span>${fmt(amt)}</span> · ${pct}%</div>
@@ -1072,6 +1113,7 @@ window.switchTab = function(name) {
   document.querySelectorAll('.panel').forEach(p => {
     p.classList.toggle('active', p.id === `panel-${name}`);
   });
+  updateFab(name);
   if (name === 'budgets')   renderBudgets();
   if (name === 'subs')      renderSubs();
   if (name === 'analytics') renderAnalytics();
@@ -1084,14 +1126,14 @@ window.changeMonth = function(dir) {
   if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
   renderAll();
 };
+
 function getTodayLocal() {
   const d = new Date();
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
   return d.toISOString().split('T')[0];
 }
+
 window.openAddModal = function() {
-  const activeTab = document.querySelector('.tab.active')?.dataset.tab;
-  if (activeTab === 'subs') { openSubModal(); return; }
   editingKey = null;
   document.getElementById('addModalTitle').textContent = 'Add transaction';
   setType('expense');
@@ -1183,6 +1225,102 @@ window.deleteCurrentTx = async function() {
   }
 };
 
+// ── Budget: per-category edit modal ──────────────────────────────────────────
+let editingBudgetCatId = null;
+
+window.openBudgetPickModal = function() {
+  const budgets = currentBudgets();
+  // Show only categories that don't yet have a budget set
+  const available = EXPENSE_CATS.filter(c => !budgets[c.id]);
+  const listEl = document.getElementById('budgetPickList');
+  if (!available.length) {
+    listEl.innerHTML = `<div class="empty" style="padding:20px 0"><p>All categories already have limits set.<br>Tap any category card to edit it.</p></div>`;
+  } else {
+    listEl.innerHTML = available.map(cat => `
+      <div class="tx-card" onclick="window._openNewBudgetCat('${cat.id}')">
+        <div class="tx-icon">${cat.icon}</div>
+        <div class="tx-info">
+          <div class="tx-name">${cat.name}</div>
+        </div>
+        <div style="color:var(--text2);font-size:0.8rem;">Set limit →</div>
+      </div>`).join('');
+  }
+  document.getElementById('budgetPickModal').classList.add('open');
+};
+
+window._openNewBudgetCat = function(catId) {
+  document.getElementById('budgetPickModal').classList.remove('open');
+  openBudgetCatModal(catId, false);
+};
+
+window._editBudgetCat = function(catId) {
+  openBudgetCatModal(catId, true);
+};
+
+function openBudgetCatModal(catId, isEdit) {
+  editingBudgetCatId = catId;
+  const cat = catById(catId);
+  const budgets = currentBudgets();
+  document.getElementById('budgetCatModalTitle').textContent = isEdit ? 'Edit budget limit' : 'Set budget limit';
+  document.getElementById('budgetCatIcon').textContent = cat.icon;
+  document.getElementById('budgetCatName').textContent = cat.name;
+  document.getElementById('budgetCatAmount').value = budgets[catId] || '';
+  document.getElementById('budgetCatActions').innerHTML = isEdit
+    ? `<button class="btn btn-danger" onclick="deleteBudgetCat()">Remove</button>
+       <button class="btn btn-primary" onclick="saveBudgetCat()">Save</button>`
+    : `<button class="btn btn-ghost" onclick="closeBudgetCatModal()">Cancel</button>
+       <button class="btn btn-primary" onclick="saveBudgetCat()">Save</button>`;
+  document.getElementById('budgetCatModal').classList.add('open');
+  setTimeout(() => document.getElementById('budgetCatAmount').focus(), 100);
+}
+
+window.closeBudgetCatModal = function(e) {
+  if (e && e.target !== document.getElementById('budgetCatModal')) return;
+  document.getElementById('budgetCatModal').classList.remove('open');
+  editingBudgetCatId = null;
+};
+
+window.closeBudgetPickModal = function(e) {
+  if (e && e.target !== document.getElementById('budgetPickModal')) return;
+  document.getElementById('budgetPickModal').classList.remove('open');
+};
+
+window.saveBudgetCat = async function() {
+  const amount = parseFloat(document.getElementById('budgetCatAmount').value);
+  if (isNaN(amount) || amount <= 0) {
+    alert('Please enter a valid amount.');
+    return;
+  }
+  const budgetPath = WALLETS[currentWallet].budgetPath;
+  setSyncStatus('syncing', 'saving…');
+  try {
+    await update(ref(db, budgetPath), { [editingBudgetCatId]: amount });
+    setSyncStatus('ok', 'synced');
+    document.getElementById('budgetCatModal').classList.remove('open');
+    editingBudgetCatId = null;
+  } catch(err) {
+    setSyncStatus('err', 'save failed');
+    console.error(err);
+  }
+};
+
+window.deleteBudgetCat = async function() {
+  if (!editingBudgetCatId) return;
+  if (!confirm('Remove this budget limit?')) return;
+  const budgetPath = WALLETS[currentWallet].budgetPath;
+  setSyncStatus('syncing', 'deleting…');
+  try {
+    await update(ref(db, budgetPath), { [editingBudgetCatId]: null });
+    setSyncStatus('ok', 'synced');
+    document.getElementById('budgetCatModal').classList.remove('open');
+    editingBudgetCatId = null;
+  } catch(err) {
+    setSyncStatus('err', 'delete failed');
+    console.error(err);
+  }
+};
+
+// ── Legacy bulk budget modal (kept but not surfaced) ─────────────────────────
 window.openBudgetModal = function() {
   const budgets = currentBudgets();
   document.getElementById('budgetEditList').innerHTML = EXPENSE_CATS.map(c => `
@@ -1304,13 +1442,10 @@ window.saveSubscription = async function() {
       const wasPaused = existing.active === false;
       const patch = { type: currentSubType, name, amount, cat, day, active: subActiveState };
       if (wasPaused && subActiveState) {
-        // Resuming: don't backfill the months it was paused — pick up from now.
         patch.lastAdded = decrementMonthKey(actualNowMK());
       }
       await update(ref(db, `${subPath}/${editingSubKey}`), patch);
     } else {
-      // lastAdded is left unset so the auto-add engine treats "this month" as
-      // the first month to generate a transaction for.
       await push(ref(db, subPath), { type: currentSubType, name, amount, cat, day, active: subActiveState });
     }
     setSyncStatus('ok', 'synced');
