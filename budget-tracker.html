@@ -22,6 +22,7 @@
     --r: 14px;
     --r-sm: 9px;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
   }
   [data-theme="forest"] {
     --bg: #0e0e12;
@@ -47,13 +48,13 @@
     position: relative;
   }
   #syncStatus {
-    position: fixed; top: 8px; right: 44px; z-index: 500;
+    position: fixed; top: calc(8px + var(--safe-top)); right: 44px; z-index: 500;
     font-size: 0.65rem; color: var(--text2);
     display: flex; align-items: center; gap: 4px;
     transition: opacity 0.3s;
   }
   #themeToggle {
-    position: fixed; top: 4px; right: 4px; z-index: 500;
+    position: fixed; top: calc(4px + var(--safe-top)); right: 4px; z-index: 500;
     width: 30px; height: 30px; border-radius: 50%;
     background: var(--surface); border: 1px solid var(--border);
     color: var(--text2); cursor: pointer;
@@ -68,7 +69,7 @@
   .topbar {
     position: sticky; top: 0; z-index: 100;
     background: var(--bg);
-    padding: 16px 16px 0;
+    padding: calc(16px + var(--safe-top)) 16px 0;
     border-bottom: 1px solid var(--border);
   }
   .topbar-row {
@@ -134,25 +135,32 @@
   [data-theme="forest"] #walletSwitch.left-active .toggle-thumb { background: rgba(106,255,138,0.22); }
   #walletSwitch.right-active .toggle-thumb { background: rgba(184,255,106,0.18); }
   .summary {
-    padding: 0 16px 16px;
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+    padding: 0 16px 14px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
   }
   .sum-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--r); padding: 12px;
+    border-radius: var(--r); padding: 10px 6px;
+    min-width: 0;
   }
-  .sum-label { font-size: 0.65rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
-  .sum-value { font-family: 'Space Mono', monospace; font-size: 1rem; font-weight: 700; }
+  .sum-label { font-size: 0.6rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sum-value {
+    font-family: 'Space Mono', monospace; font-weight: 700;
+    font-size: 0.95rem; letter-spacing: -0.04em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: block;
+  }
   .sum-value.income { color: var(--income); }
   .sum-value.expense { color: var(--expense); }
   .sum-value.balance { color: var(--accent); }
   .tabs { display: flex; gap: 4px; padding: 0 16px 12px; }
   .tab {
-    flex: 1; padding: 8px 4px; text-align: center;
-    font-size: 0.8rem; font-weight: 500; color: var(--text2);
+    flex: 1; padding: 8px 2px; text-align: center;
+    font-size: 0.74rem; font-weight: 500; color: var(--text2);
     cursor: pointer; border-radius: var(--r-sm);
     border: 1px solid transparent;
     transition: all 0.15s; user-select: none;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .tab.active { background: var(--surface2); color: var(--text); border-color: var(--border); }
   .scroll-area {
@@ -329,6 +337,25 @@
     padding: 7px 10px; outline: none; text-align: right;
   }
   .budget-edit-row input:focus { border-color: var(--accent); }
+  .sub-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; cursor: pointer; transition: border-color 0.15s; }
+  .sub-card:active { border-color: var(--accent); }
+  .sub-card.paused { opacity: 0.5; }
+  .sub-top { display: flex; align-items: center; gap: 12px; }
+  .sub-info { flex: 1; min-width: 0; }
+  .sub-name { font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
+  .sub-meta { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
+  .sub-amount { font-family: 'Space Mono', monospace; font-size: 0.92rem; font-weight: 700; color: var(--expense); flex-shrink: 0; }
+  .sub-amount.income { color: var(--income); }
+  .status-pill { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; flex-shrink: 0; }
+  .status-pill.active { background: rgba(184,255,106,0.15); color: var(--income); }
+  .status-pill.paused { background: var(--surface2); color: var(--text2); }
+  .recur-badge { font-size: 0.7rem; opacity: 0.7; flex-shrink: 0; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 14px; }
+  .toggle-row span { font-size: 0.85rem; color: var(--text2); }
+  .mini-switch { position: relative; width: 44px; height: 26px; background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; cursor: pointer; flex-shrink: 0; }
+  .mini-switch .mini-thumb { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--text2); transition: transform 0.2s, background 0.2s; }
+  .mini-switch.on { background: rgba(184,255,106,0.18); border-color: var(--income); }
+  .mini-switch.on .mini-thumb { transform: translateX(18px); background: var(--income); }
 </style>
 </head>
 <body>
@@ -388,9 +415,10 @@
   </div>
 
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('transactions')">Transactions</div>
-    <div class="tab" onclick="switchTab('budgets')">Budgets</div>
-    <div class="tab" onclick="switchTab('analytics')">Analytics</div>
+    <div class="tab active" data-tab="transactions" onclick="switchTab('transactions')">Transactions</div>
+    <div class="tab" data-tab="budgets" onclick="switchTab('budgets')">Budgets</div>
+    <div class="tab" data-tab="subs" onclick="switchTab('subs')">Subs</div>
+    <div class="tab" data-tab="analytics" onclick="switchTab('analytics')">Analytics</div>
   </div>
 </div>
 
@@ -403,6 +431,9 @@
       <button class="btn btn-ghost" style="flex:none;padding:8px 14px;font-size:0.8rem;border-radius:var(--r-sm)" onclick="openBudgetModal()">Edit budgets</button>
     </div>
     <div id="budgetList"></div>
+  </div>
+  <div class="panel" id="panel-subs">
+    <div id="subsList"></div>
   </div>
   <div class="panel" id="panel-analytics">
     <div id="analyticsFilters" class="filter-row" style="margin-bottom:2px;"></div>
@@ -461,6 +492,45 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="subModal" onclick="closeSubModal(event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="subModalTitle">Add subscription</span>
+      <button class="modal-close" onclick="closeSubModal()">✕</button>
+    </div>
+    <div class="field">
+      <div class="type-toggle">
+        <button class="type-btn expense-btn active" id="subTypeExpense" onclick="setSubType('expense')">↑ Expense</button>
+        <button class="type-btn income-btn" id="subTypeIncome" onclick="setSubType('income')">↓ Income</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="subName" placeholder="e.g. Netflix" maxlength="50" />
+    </div>
+    <div class="field">
+      <label>Amount</label>
+      <input type="number" id="subAmount" placeholder="0" min="0" inputmode="decimal" />
+    </div>
+    <div class="field">
+      <label>Category</label>
+      <select id="subCat"></select>
+    </div>
+    <div class="field">
+      <label>Charges on day</label>
+      <select id="subDay"></select>
+    </div>
+    <div class="toggle-row" id="subActiveRow" onclick="toggleSubActive()">
+      <span>Active — auto-adds every month</span>
+      <div class="mini-switch on" id="subActiveSwitch"><div class="mini-thumb"></div></div>
+    </div>
+    <div class="modal-actions" id="subModalActions">
+      <button class="btn btn-ghost" onclick="closeSubModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSubscription()">Save</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, push, set, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -478,8 +548,8 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const WALLETS = {
-  JPY: { symbol: '¥', txPath: 'transactions',      budgetPath: 'budgets' },
-  THB: { symbol: '฿', txPath: 'transactions_thb',  budgetPath: 'budgets_thb' }
+  JPY: { symbol: '¥', txPath: 'transactions',      budgetPath: 'budgets',      subPath: 'subscriptions' },
+  THB: { symbol: '฿', txPath: 'transactions_thb',  budgetPath: 'budgets_thb',  subPath: 'subscriptions_thb' }
 };
 let currentWallet = 'JPY';
 let currentPeriod = 'month';
@@ -504,8 +574,8 @@ const ALL_CATS = [...EXPENSE_CATS, ...INCOME_CATS];
 function catById(id) { return ALL_CATS.find(c => c.id === id) || { name: id, icon: '•' }; }
 
 let walletData = {
-  JPY: { transactions: {}, budgets: {} },
-  THB: { transactions: {}, budgets: {} }
+  JPY: { transactions: {}, budgets: {}, subscriptions: {} },
+  THB: { transactions: {}, budgets: {}, subscriptions: {} }
 };
 let currentType = 'expense';
 let editingKey = null;
@@ -533,7 +603,78 @@ Object.entries(WALLETS).forEach(([wid, w]) => {
     walletData[wid].budgets = snap.val() || {};
     renderAll();
   });
+  onValue(ref(db, w.subPath), snap => {
+    walletData[wid].subscriptions = snap.val() || {};
+    processSubscriptions(wid);
+    renderAll();
+  });
 });
+
+// ── Subscriptions: monthly auto-add engine ─────────────────────────────────
+// Each subscription remembers the last month ('YYYY-MM') a transaction was
+// generated for it. Whenever subscription data loads (app open, or after any
+// change), we check every active subscription and, if the real current month
+// is newer than its lastAdded month, we push one transaction per missing
+// month (so it catches up even if the app wasn't opened for a while) and
+// bump lastAdded. This is what makes a subscription "automatically add every
+// month" without needing a server — it settles up the moment the app is used.
+const subProcessing = new Set();
+
+function incrementMonthKey(mk) {
+  let [y, m] = mk.split('-').map(Number);
+  m += 1;
+  if (m > 12) { m = 1; y += 1; }
+  return `${y}-${String(m).padStart(2,'0')}`;
+}
+function decrementMonthKey(mk) {
+  let [y, m] = mk.split('-').map(Number);
+  m -= 1;
+  if (m < 1) { m = 12; y -= 1; }
+  return `${y}-${String(m).padStart(2,'0')}`;
+}
+function actualNowMK() {
+  const d = new Date();
+  return monthKey(d.getFullYear(), d.getMonth());
+}
+function clampDayToMonth(mk, day) {
+  const [y, m] = mk.split('-').map(Number); // m is 1-indexed
+  const lastDay = new Date(y, m, 0).getDate();
+  return Math.min(day, lastDay);
+}
+
+async function processSubscriptions(wid) {
+  const subs = walletData[wid].subscriptions || {};
+  const nowMK = actualNowMK();
+  for (const [key, sub] of Object.entries(subs)) {
+    if (sub.active === false) continue;
+    const lockKey = `${wid}:${key}`;
+    if (subProcessing.has(lockKey)) continue;
+    const startFrom = sub.lastAdded ? incrementMonthKey(sub.lastAdded) : nowMK;
+    if (startFrom > nowMK) continue; // already up to date
+    subProcessing.add(lockKey);
+    try {
+      await catchUpSubscription(wid, key, sub, startFrom, nowMK);
+    } catch (err) {
+      console.error('Subscription auto-add failed', err);
+    } finally {
+      subProcessing.delete(lockKey);
+    }
+  }
+}
+
+async function catchUpSubscription(wid, key, sub, startFrom, nowMK) {
+  const txPath = WALLETS[wid].txPath;
+  let cursor = startFrom;
+  while (cursor <= nowMK) {
+    const day = clampDayToMonth(cursor, sub.day || 1);
+    const dateStr = `${cursor}-${String(day).padStart(2,'0')}`;
+    await push(ref(db, txPath), {
+      type: sub.type, name: sub.name, amount: sub.amount, cat: sub.cat, date: dateStr, subId: key
+    });
+    cursor = incrementMonthKey(cursor);
+  }
+  await update(ref(db, `${WALLETS[wid].subPath}/${key}`), { lastAdded: nowMK });
+}
 
 function monthKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
 function currentMK() { return monthKey(viewYear, viewMonth); }
@@ -547,6 +688,7 @@ function escHtml(s) {
 }
 function currentTx() { return walletData[currentWallet].transactions; }
 function currentBudgets() { return walletData[currentWallet].budgets; }
+function currentSubs() { return walletData[currentWallet].subscriptions; }
 
 function getFilteredTx() {
   const all = Object.entries(currentTx()).map(([key, t]) => ({ ...t, _key: key }));
@@ -591,6 +733,7 @@ function renderAll() {
   if (!activePanel) return;
   const name = activePanel.id.replace('panel-', '');
   if (name === 'budgets')   renderBudgets();
+  if (name === 'subs')      renderSubs();
   if (name === 'analytics') renderAnalytics();
 }
 
@@ -608,12 +751,28 @@ function updateSummary() {
   const txs = getFilteredTx();
   const income  = txs.filter(t => t.type==='income') .reduce((s,t) => s+t.amount, 0);
   const expense = txs.filter(t => t.type==='expense').reduce((s,t) => s+t.amount, 0);
-  document.getElementById('sumIncome').textContent  = fmt(income);
-  document.getElementById('sumExpense').textContent = fmt(expense);
+  const incomeEl  = document.getElementById('sumIncome');
+  const expenseEl = document.getElementById('sumExpense');
+  incomeEl.textContent  = fmt(income);
+  expenseEl.textContent = fmt(expense);
   const bal = income - expense;
   const balEl = document.getElementById('sumBalance');
   balEl.textContent  = (bal < 0 ? '-' : '') + fmt(Math.abs(bal));
   balEl.style.color  = bal < 0 ? 'var(--expense)' : 'var(--accent)';
+  [incomeEl, expenseEl, balEl].forEach(fitSumValue);
+}
+
+// Shrinks a sum-value's font-size in small steps until the full raw number
+// fits on one line without being clipped — so a 7-digit amount stays whole
+// instead of ending in "…" or getting abbreviated to "7M" / "5k".
+function fitSumValue(el) {
+  const maxPx = 15.2, minPx = 8.5, step = 0.5;
+  let size = maxPx;
+  el.style.fontSize = size + 'px';
+  while (el.scrollWidth > el.clientWidth && size > minPx) {
+    size -= step;
+    el.style.fontSize = size + 'px';
+  }
 }
 
 function renderTransactions() {
@@ -634,7 +793,7 @@ function renderTransactions() {
         <div class="tx-card" onclick="window._editTx('${t._key}')">
           <div class="tx-icon">${cat.icon}</div>
           <div class="tx-info">
-            <div class="tx-name">${escHtml(t.name)}</div>
+            <div class="tx-name">${escHtml(t.name)}${t.subId ? ' <span class="recur-badge" title="Auto-added subscription">🔁</span>' : ''}</div>
             <div class="tx-cat">${cat.name}</div>
           </div>
           <div class="tx-right">
@@ -700,6 +859,34 @@ function renderBudgets() {
       </div>`;
   });
   el.innerHTML = html || `<div class="empty"><p>No budgets set.</p></div>`;
+}
+
+function renderSubs() {
+  const subs = currentSubs();
+  const el = document.getElementById('subsList');
+  const entries = Object.entries(subs);
+  if (!entries.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🔁</div><p>No subscriptions yet.<br>Tap + to add one — it'll auto-add a transaction every month.</p></div>`;
+    return;
+  }
+  entries.sort((a,b) => (a[1].day||1) - (b[1].day||1));
+  let html = '';
+  entries.forEach(([key, sub]) => {
+    const cat = catById(sub.cat);
+    const active = sub.active !== false;
+    html += `
+      <div class="sub-card ${active ? '' : 'paused'}" onclick="window._editSub('${key}')">
+        <div class="sub-top">
+          <div class="tx-icon">${cat.icon}</div>
+          <div class="sub-info">
+            <div class="sub-name">${escHtml(sub.name)}</div>
+            <div class="sub-meta">Day ${sub.day || 1} of every month · ${cat.name}</div>
+          </div>
+          <div class="sub-amount ${sub.type}">${sub.type==='income'?'+':'-'}${fmt(sub.amount)}</div>
+        </div>
+      </div>`;
+  });
+  el.innerHTML = html;
 }
 
 let analyticsFilterCat = null; // null = all categories
@@ -879,13 +1066,14 @@ function renderAnalytics() {
 }
 
 window.switchTab = function(name) {
-  document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['transactions','budgets','analytics'][i] === name);
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === name);
   });
   document.querySelectorAll('.panel').forEach(p => {
     p.classList.toggle('active', p.id === `panel-${name}`);
   });
   if (name === 'budgets')   renderBudgets();
+  if (name === 'subs')      renderSubs();
   if (name === 'analytics') renderAnalytics();
 };
 
@@ -902,6 +1090,8 @@ function getTodayLocal() {
   return d.toISOString().split('T')[0];
 }
 window.openAddModal = function() {
+  const activeTab = document.querySelector('.tab.active')?.dataset.tab;
+  if (activeTab === 'subs') { openSubModal(); return; }
   editingKey = null;
   document.getElementById('addModalTitle').textContent = 'Add transaction';
   setType('expense');
@@ -1022,6 +1212,129 @@ window.saveBudgets = async function() {
     document.getElementById('budgetModal').classList.remove('open');
   } catch(err) {
     setSyncStatus('err', 'save failed');
+    console.error(err);
+  }
+};
+
+// ── Subscription modal ──────────────────────────────────────────────────────
+let editingSubKey = null;
+let currentSubType = 'expense';
+let subActiveState = true;
+
+function populateSubDayOptions(selected) {
+  const sel = document.getElementById('subDay');
+  let html = '';
+  for (let d = 1; d <= 28; d++) html += `<option value="${d}">${d}</option>`;
+  sel.innerHTML = html;
+  sel.value = selected || 1;
+}
+
+window.setSubType = function(type) {
+  currentSubType = type;
+  document.getElementById('subTypeExpense').classList.toggle('active', type==='expense');
+  document.getElementById('subTypeIncome').classList.toggle('active',  type==='income');
+  const cats = type==='expense' ? EXPENSE_CATS : INCOME_CATS;
+  const sel = document.getElementById('subCat');
+  const prevVal = sel.value;
+  sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+  if (cats.some(c => c.id === prevVal)) sel.value = prevVal;
+};
+
+window.toggleSubActive = function() {
+  subActiveState = !subActiveState;
+  document.getElementById('subActiveSwitch').classList.toggle('on', subActiveState);
+};
+
+window.openSubModal = function() {
+  editingSubKey = null;
+  subActiveState = true;
+  document.getElementById('subModalTitle').textContent = 'Add subscription';
+  setSubType('expense');
+  document.getElementById('subName').value   = '';
+  document.getElementById('subAmount').value = '';
+  populateSubDayOptions(new Date().getDate() > 28 ? 28 : new Date().getDate());
+  document.getElementById('subActiveSwitch').classList.add('on');
+  document.getElementById('subModalActions').innerHTML = `
+    <button class="btn btn-ghost" onclick="closeSubModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveSubscription()">Save</button>
+  `;
+  document.getElementById('subModal').classList.add('open');
+  setTimeout(() => document.getElementById('subName').focus(), 100);
+};
+
+window._editSub = function(key) {
+  const sub = currentSubs()[key];
+  if (!sub) return;
+  editingSubKey = key;
+  subActiveState = sub.active !== false;
+  document.getElementById('subModalTitle').textContent = 'Edit subscription';
+  setSubType(sub.type);
+  document.getElementById('subName').value   = sub.name;
+  document.getElementById('subAmount').value = sub.amount;
+  document.getElementById('subCat').value    = sub.cat;
+  populateSubDayOptions(sub.day || 1);
+  document.getElementById('subActiveSwitch').classList.toggle('on', subActiveState);
+  document.getElementById('subModalActions').innerHTML = `
+    <button class="btn btn-danger" onclick="deleteCurrentSub()">Delete</button>
+    <button class="btn btn-primary" onclick="saveSubscription()">Save</button>
+  `;
+  document.getElementById('subModal').classList.add('open');
+};
+
+window.closeSubModal = function(e) {
+  if (e && e.target !== document.getElementById('subModal')) return;
+  document.getElementById('subModal').classList.remove('open');
+  editingSubKey = null;
+};
+
+window.saveSubscription = async function() {
+  const name   = document.getElementById('subName').value.trim();
+  const amount = parseFloat(document.getElementById('subAmount').value);
+  const cat    = document.getElementById('subCat').value;
+  const day    = parseInt(document.getElementById('subDay').value, 10);
+  if (!name || isNaN(amount) || amount <= 0) {
+    alert('Please fill in all fields with a valid amount.');
+    return;
+  }
+  const subPath = WALLETS[currentWallet].subPath;
+  setSyncStatus('syncing', 'saving…');
+  try {
+    if (editingSubKey) {
+      const existing = currentSubs()[editingSubKey] || {};
+      const wasPaused = existing.active === false;
+      const patch = { type: currentSubType, name, amount, cat, day, active: subActiveState };
+      if (wasPaused && subActiveState) {
+        // Resuming: don't backfill the months it was paused — pick up from now.
+        patch.lastAdded = decrementMonthKey(actualNowMK());
+      }
+      await update(ref(db, `${subPath}/${editingSubKey}`), patch);
+    } else {
+      // lastAdded is left unset so the auto-add engine treats "this month" as
+      // the first month to generate a transaction for.
+      await push(ref(db, subPath), { type: currentSubType, name, amount, cat, day, active: subActiveState });
+    }
+    setSyncStatus('ok', 'synced');
+    document.getElementById('subModal').classList.remove('open');
+    editingSubKey = null;
+  } catch(err) {
+    setSyncStatus('err', 'save failed');
+    alert('Failed to save. Check your connection.');
+    console.error(err);
+  }
+};
+
+window.deleteCurrentSub = async function() {
+  if (!editingSubKey) return;
+  if (!confirm('Delete this subscription? Past transactions it already created will stay.')) return;
+  const subPath = WALLETS[currentWallet].subPath;
+  setSyncStatus('syncing', 'deleting…');
+  try {
+    await remove(ref(db, `${subPath}/${editingSubKey}`));
+    setSyncStatus('ok', 'synced');
+    document.getElementById('subModal').classList.remove('open');
+    editingSubKey = null;
+  } catch(err) {
+    setSyncStatus('err', 'delete failed');
     console.error(err);
   }
 };
