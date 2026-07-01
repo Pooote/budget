@@ -308,7 +308,15 @@
     width: 100%; background: var(--bg); border: 1px solid var(--border);
     border-radius: var(--r-sm); color: var(--text);
     font-family: 'Space Grotesk', sans-serif; font-size: 1rem;
-    padding: 12px 14px; outline: none;
+    padding: 0 14px; outline: none;
+    -webkit-appearance: none; appearance: none;
+    height: 46px; box-sizing: border-box; line-height: normal;
+  }
+  .field input[type="date"] {
+    -webkit-min-logical-width: 0;
+  }
+  .field input[type="date"]::-webkit-date-and-time-value {
+    text-align: left;
   }
   .field input:focus, .field select:focus { border-color: var(--accent); }
   .type-toggle { display: flex; gap: 8px; }
