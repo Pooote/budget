@@ -1,2 +1,2 @@
 # Budget Tracker
-Use for me only
+Personal use only
