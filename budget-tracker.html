@@ -201,7 +201,6 @@
     cursor: pointer; transition: border-color 0.15s;
   }
   .budget-card:active { border-color: var(--accent); }
-  /* Budget cards in analytics are NOT clickable */
   .budget-card.no-click { cursor: default; }
   .budget-card.no-click:active { border-color: var(--border); }
   .budget-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
@@ -239,6 +238,18 @@
   .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   .legend-label { font-size: 0.78rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .legend-pct { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--text2); }
+  /* ── Analytics type toggle ── */
+  .analytics-type-toggle {
+    display: flex; gap: 4px; margin-bottom: 8px;
+  }
+  .a-type-btn {
+    flex: 1; padding: 8px; border-radius: var(--r-sm);
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text2); font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .a-type-btn.active.expense-active { background: rgba(255,106,155,0.12); border-color: var(--expense); color: var(--expense); }
+  .a-type-btn.active.income-active  { background: rgba(184,255,106,0.12); border-color: var(--income);  color: var(--income); }
   /* ── Category filter chips ── */
   .filter-row {
     display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;
@@ -252,7 +263,10 @@
     cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px;
     transition: all 0.15s; font-family: 'Space Grotesk', sans-serif;
   }
-  .filter-chip.active { background: rgba(124,106,255,0.18); border-color: var(--accent); color: var(--accent); }
+  /* "All" chip */
+  .filter-chip.all-chip.active { background: rgba(124,106,255,0.18); border-color: var(--accent); color: var(--accent); }
+  /* Category chips when selected */
+  .filter-chip.cat-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(124,106,255,0.12); }
   /* ── Line graph ── */
   .line-wrap {
     background: var(--surface); border: 1px solid var(--border);
@@ -263,9 +277,7 @@
   .line-svg-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .line-svg-wrap::-webkit-scrollbar { display: none; }
   .line-point { cursor: pointer; }
-  .line-tooltip {
-    font-family: 'Space Mono', monospace; font-size: 9px; fill: var(--text2);
-  }
+  .line-tooltip { font-family: 'Space Mono', monospace; font-size: 9px; fill: var(--text2); }
   .empty { text-align: center; padding: 40px 20px; color: var(--text2); }
   .empty-icon { font-size: 2.2rem; margin-bottom: 10px; }
   .empty p { font-size: 0.85rem; }
@@ -312,20 +324,15 @@
     -webkit-appearance: none; appearance: none;
     height: 46px; box-sizing: border-box; line-height: normal;
   }
-  .field input[type="date"] {
-    -webkit-min-logical-width: 0;
-  }
-  .field input[type="date"]::-webkit-date-and-time-value {
-    text-align: left;
-  }
+  .field input[type="date"] { -webkit-min-logical-width: 0; }
+  .field input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   .field input:focus, .field select:focus { border-color: var(--accent); }
   .type-toggle { display: flex; gap: 8px; }
   .type-btn {
     flex: 1; padding: 10px; border-radius: var(--r-sm);
     border: 1px solid var(--border); background: var(--bg);
     color: var(--text2); font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.9rem; font-weight: 600; cursor: pointer;
-    transition: all 0.15s;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
   }
   .type-btn.active.income-btn { background: rgba(184,255,106,0.15); border-color: var(--income); color: var(--income); }
   .type-btn.active.expense-btn { background: rgba(255,106,155,0.15); border-color: var(--expense); color: var(--expense); }
@@ -333,8 +340,7 @@
   .btn {
     flex: 1; padding: 14px; border-radius: var(--r-sm);
     border: none; font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.95rem; font-weight: 700; cursor: pointer;
-    transition: opacity 0.15s;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
   }
   .btn:active { opacity: 0.8; }
   .btn-primary { background: var(--accent); color: #fff; }
@@ -360,9 +366,6 @@
   .sub-meta { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
   .sub-amount { font-family: 'Space Mono', monospace; font-size: 0.92rem; font-weight: 700; color: var(--expense); flex-shrink: 0; }
   .sub-amount.income { color: var(--income); }
-  .status-pill { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; flex-shrink: 0; }
-  .status-pill.active { background: rgba(184,255,106,0.15); color: var(--income); }
-  .status-pill.paused { background: var(--surface2); color: var(--text2); }
   .recur-badge { font-size: 0.7rem; opacity: 0.7; flex-shrink: 0; }
   .toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 14px; }
   .toggle-row span { font-size: 0.85rem; color: var(--text2); }
@@ -447,6 +450,10 @@
     <div id="subsList"></div>
   </div>
   <div class="panel" id="panel-analytics">
+    <div class="analytics-type-toggle">
+      <button class="a-type-btn active" id="aTypeExpense" onclick="window._setAnalyticsType('expense')">↑ Expense</button>
+      <button class="a-type-btn" id="aTypeIncome" onclick="window._setAnalyticsType('income')">↓ Income</button>
+    </div>
     <div id="analyticsFilters" class="filter-row" style="margin-bottom:2px;"></div>
     <div id="analyticsContent"></div>
   </div>
@@ -467,22 +474,10 @@
         <button class="type-btn income-btn" id="typeIncome" onclick="setType('income')">↓ Income</button>
       </div>
     </div>
-    <div class="field">
-      <label>Description</label>
-      <input type="text" id="txName" placeholder="e.g. Grocery run" maxlength="50" />
-    </div>
-    <div class="field">
-      <label>Amount</label>
-      <input type="number" id="txAmount" placeholder="0" min="0" inputmode="decimal" />
-    </div>
-    <div class="field">
-      <label>Category</label>
-      <select id="txCat"></select>
-    </div>
-    <div class="field">
-      <label>Date</label>
-      <input type="date" id="txDate" />
-    </div>
+    <div class="field"><label>Description</label><input type="text" id="txName" placeholder="e.g. Grocery run" maxlength="50" /></div>
+    <div class="field"><label>Amount</label><input type="number" id="txAmount" placeholder="0" min="0" inputmode="decimal" /></div>
+    <div class="field"><label>Category</label><select id="txCat"></select></div>
+    <div class="field"><label>Date</label><input type="date" id="txDate" /></div>
     <div class="modal-actions" id="addModalActions">
       <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveTransaction()">Save</button>
@@ -490,7 +485,7 @@
   </div>
 </div>
 
-<!-- Add / Edit Budget Category Modal -->
+<!-- Budget category modal -->
 <div class="modal-overlay" id="budgetCatModal" onclick="closeBudgetCatModal(event)">
   <div class="modal">
     <div class="modal-title">
@@ -504,10 +499,7 @@
         <div style="font-size:0.75rem;color:var(--text2);">Monthly spending limit</div>
       </div>
     </div>
-    <div class="field">
-      <label>Limit amount</label>
-      <input type="number" id="budgetCatAmount" placeholder="0" min="0" inputmode="decimal" />
-    </div>
+    <div class="field"><label>Limit amount</label><input type="number" id="budgetCatAmount" placeholder="0" min="0" inputmode="decimal" /></div>
     <div class="modal-actions" id="budgetCatActions">
       <button class="btn btn-ghost" onclick="closeBudgetCatModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveBudgetCat()">Save</button>
@@ -515,7 +507,7 @@
   </div>
 </div>
 
-<!-- Add Budget: pick a category first -->
+<!-- Budget pick modal -->
 <div class="modal-overlay" id="budgetPickModal" onclick="closeBudgetPickModal(event)">
   <div class="modal">
     <div class="modal-title">
@@ -527,7 +519,7 @@
   </div>
 </div>
 
-<!-- Edit Budgets (legacy bulk edit — kept for reference but no longer shown) -->
+<!-- Legacy bulk budget modal -->
 <div class="modal-overlay" id="budgetModal" onclick="closeBudgetModal(event)">
   <div class="modal">
     <div class="modal-title">
@@ -555,22 +547,10 @@
         <button class="type-btn income-btn" id="subTypeIncome" onclick="setSubType('income')">↓ Income</button>
       </div>
     </div>
-    <div class="field">
-      <label>Name</label>
-      <input type="text" id="subName" placeholder="e.g. Netflix" maxlength="50" />
-    </div>
-    <div class="field">
-      <label>Amount</label>
-      <input type="number" id="subAmount" placeholder="0" min="0" inputmode="decimal" />
-    </div>
-    <div class="field">
-      <label>Category</label>
-      <select id="subCat"></select>
-    </div>
-    <div class="field">
-      <label>Charges on day</label>
-      <select id="subDay"></select>
-    </div>
+    <div class="field"><label>Name</label><input type="text" id="subName" placeholder="e.g. Netflix" maxlength="50" /></div>
+    <div class="field"><label>Amount</label><input type="number" id="subAmount" placeholder="0" min="0" inputmode="decimal" /></div>
+    <div class="field"><label>Category</label><select id="subCat"></select></div>
+    <div class="field"><label>Charges on day</label><select id="subDay"></select></div>
     <div class="toggle-row" id="subActiveRow" onclick="toggleSubActive()">
       <span>Active — auto-adds every month</span>
       <div class="mini-switch on" id="subActiveSwitch"><div class="mini-thumb"></div></div>
@@ -599,27 +579,28 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const WALLETS = {
-  JPY: { symbol: '¥', txPath: 'transactions',      budgetPath: 'budgets',      subPath: 'subscriptions' },
-  THB: { symbol: '฿', txPath: 'transactions_thb',  budgetPath: 'budgets_thb',  subPath: 'subscriptions_thb' }
+  JPY: { symbol: '¥', txPath: 'transactions',     budgetPath: 'budgets',     subPath: 'subscriptions' },
+  THB: { symbol: '฿', txPath: 'transactions_thb', budgetPath: 'budgets_thb', subPath: 'subscriptions_thb' }
 };
 let currentWallet = 'JPY';
 let currentPeriod = 'month';
 
 const EXPENSE_CATS = [
-  { id:'food',        name:'Food',          icon:'🥬' },
-  { id:'shopping',    name:'Shopping',      icon:'🛍️' },
-  { id:'transport',   name:'Transport',     icon:'🚲' },
-  { id:'travel',      name:'Travel',        icon:'✈️' },
-  { id:'utilities',   name:'Utilities',     icon:'⚡️' },
-  { id:'furniture',   name:'Furniture',     icon:'🏠' },
-  { id:'daily_used',  name:'Daily used',    icon:'📆' },
-  { id:'gifts',       name:'Gifts',         icon:'🎁' },
-  { id:'transfer_out',name:'Transfer out',  icon:'💸' },
-  { id:'other',       name:'Other',         icon:'📦' },
+  { id:'food',        name:'Food',         icon:'🥬' },
+  { id:'shopping',    name:'Shopping',     icon:'🛍️' },
+  { id:'transport',   name:'Transport',    icon:'🚲' },
+  { id:'travel',      name:'Travel',       icon:'✈️' },
+  { id:'utilities',   name:'Utilities',    icon:'⚡️' },
+  { id:'furniture',   name:'Furniture',    icon:'🏠' },
+  { id:'daily_used',  name:'Daily used',   icon:'📆' },
+  { id:'gifts',       name:'Gifts',        icon:'🎁' },
+  { id:'transfer_out',name:'Transfer out', icon:'💸' },
+  { id:'other',       name:'Other',        icon:'📦' },
 ];
 const INCOME_CATS = [
   { id:'work',        name:'Work',        icon:'💼' },
   { id:'transfer_in', name:'Transfer in', icon:'💸' },
+  { id:'other_in',    name:'Other',       icon:'📦' },
 ];
 const ALL_CATS = [...EXPENSE_CATS, ...INCOME_CATS];
 function catById(id) { return ALL_CATS.find(c => c.id === id) || { name: id, icon: '•' }; }
@@ -635,10 +616,8 @@ let viewYear  = now.getFullYear();
 let viewMonth = now.getMonth();
 
 function setSyncStatus(state, text) {
-  const dot  = document.getElementById('syncDot');
-  const label = document.getElementById('syncText');
-  dot.className = state;
-  label.textContent = text;
+  document.getElementById('syncDot').className = state;
+  document.getElementById('syncText').textContent = text;
 }
 
 Object.entries(WALLETS).forEach(([wid, w]) => {
@@ -646,10 +625,7 @@ Object.entries(WALLETS).forEach(([wid, w]) => {
     walletData[wid].transactions = snap.val() || {};
     setSyncStatus('ok', 'synced');
     renderAll();
-  }, err => {
-    setSyncStatus('err', 'offline');
-    console.error(err);
-  });
+  }, err => { setSyncStatus('err', 'offline'); console.error(err); });
   onValue(ref(db, w.budgetPath), snap => {
     walletData[wid].budgets = snap.val() || {};
     renderAll();
@@ -661,31 +637,23 @@ Object.entries(WALLETS).forEach(([wid, w]) => {
   });
 });
 
-// ── Subscriptions: monthly auto-add engine ─────────────────────────────────
+// ── Subscriptions engine ──────────────────────────────────────────────────────
 const subProcessing = new Set();
-
 function incrementMonthKey(mk) {
-  let [y, m] = mk.split('-').map(Number);
-  m += 1;
-  if (m > 12) { m = 1; y += 1; }
+  let [y, m] = mk.split('-').map(Number); m++;
+  if (m > 12) { m = 1; y++; }
   return `${y}-${String(m).padStart(2,'0')}`;
 }
 function decrementMonthKey(mk) {
-  let [y, m] = mk.split('-').map(Number);
-  m -= 1;
-  if (m < 1) { m = 12; y -= 1; }
+  let [y, m] = mk.split('-').map(Number); m--;
+  if (m < 1) { m = 12; y--; }
   return `${y}-${String(m).padStart(2,'0')}`;
 }
-function actualNowMK() {
-  const d = new Date();
-  return monthKey(d.getFullYear(), d.getMonth());
-}
+function actualNowMK() { const d = new Date(); return monthKey(d.getFullYear(), d.getMonth()); }
 function clampDayToMonth(mk, day) {
   const [y, m] = mk.split('-').map(Number);
-  const lastDay = new Date(y, m, 0).getDate();
-  return Math.min(day, lastDay);
+  return Math.min(day, new Date(y, m, 0).getDate());
 }
-
 async function processSubscriptions(wid) {
   const subs = walletData[wid].subscriptions || {};
   const nowMK = actualNowMK();
@@ -696,25 +664,18 @@ async function processSubscriptions(wid) {
     const startFrom = sub.lastAdded ? incrementMonthKey(sub.lastAdded) : nowMK;
     if (startFrom > nowMK) continue;
     subProcessing.add(lockKey);
-    try {
-      await catchUpSubscription(wid, key, sub, startFrom, nowMK);
-    } catch (err) {
-      console.error('Subscription auto-add failed', err);
-    } finally {
-      subProcessing.delete(lockKey);
-    }
+    try { await catchUpSubscription(wid, key, sub, startFrom, nowMK); }
+    catch (err) { console.error('Sub auto-add failed', err); }
+    finally { subProcessing.delete(lockKey); }
   }
 }
-
 async function catchUpSubscription(wid, key, sub, startFrom, nowMK) {
   const txPath = WALLETS[wid].txPath;
   let cursor = startFrom;
   while (cursor <= nowMK) {
     const day = clampDayToMonth(cursor, sub.day || 1);
     const dateStr = `${cursor}-${String(day).padStart(2,'0')}`;
-    await push(ref(db, txPath), {
-      type: sub.type, name: sub.name, amount: sub.amount, cat: sub.cat, date: dateStr, subId: key
-    });
+    await push(ref(db, txPath), { type: sub.type, name: sub.name, amount: sub.amount, cat: sub.cat, date: dateStr, subId: key });
     cursor = incrementMonthKey(cursor);
   }
   await update(ref(db, `${WALLETS[wid].subPath}/${key}`), { lastAdded: nowMK });
@@ -737,14 +698,11 @@ function currentSubs() { return walletData[currentWallet].subscriptions; }
 function getFilteredTx() {
   const all = Object.entries(currentTx()).map(([key, t]) => ({ ...t, _key: key }));
   if (currentPeriod === 'all') return all.filter(t => t.date);
-  const mk = currentMK();
-  return all.filter(t => t.date && t.date.startsWith(mk));
+  return all.filter(t => t.date && t.date.startsWith(currentMK()));
 }
 
-window.cycleWallet = function() {
-  const next = currentWallet === 'JPY' ? 'THB' : 'JPY';
-  switchWalletInternal(next);
-};
+// ── Wallet / period ───────────────────────────────────────────────────────────
+window.cycleWallet = function() { switchWalletInternal(currentWallet === 'JPY' ? 'THB' : 'JPY'); };
 function switchWalletInternal(wid) {
   currentWallet = wid;
   const sw = document.getElementById('walletSwitch');
@@ -753,43 +711,29 @@ function switchWalletInternal(wid) {
   document.getElementById('logoMark').textContent = WALLETS[wid].symbol;
   renderAll();
 }
-
-window.cyclePeriod = function() {
-  const next = currentPeriod === 'month' ? 'all' : 'month';
-  switchPeriodInternal(next);
-};
+window.cyclePeriod = function() { switchPeriodInternal(currentPeriod === 'month' ? 'all' : 'month'); };
 function switchPeriodInternal(p) {
   currentPeriod = p;
   const sw = document.getElementById('periodSwitch');
   sw.classList.toggle('left-active', p === 'month');
   sw.classList.toggle('right-active', p === 'all');
-  const disable = p === 'all';
-  document.getElementById('prevMonthBtn').classList.toggle('disabled', disable);
-  document.getElementById('nextMonthBtn').classList.toggle('disabled', disable);
+  document.getElementById('prevMonthBtn').classList.toggle('disabled', p === 'all');
+  document.getElementById('nextMonthBtn').classList.toggle('disabled', p === 'all');
   renderAll();
 }
 
-// ── FAB: show/hide and action based on active tab ────────────────────────────
+// ── FAB ───────────────────────────────────────────────────────────────────────
 function updateFab(tabName) {
-  const fab = document.getElementById('mainFab');
-  if (tabName === 'analytics') {
-    fab.classList.add('hidden');
-  } else {
-    fab.classList.remove('hidden');
-  }
+  document.getElementById('mainFab').classList.toggle('hidden', tabName === 'analytics');
 }
-
 window.onFabClick = function() {
   const activeTab = document.querySelector('.tab.active')?.dataset.tab;
-  if (activeTab === 'subs') {
-    openSubModal();
-  } else if (activeTab === 'budgets') {
-    openBudgetPickModal();
-  } else {
-    openAddModal();
-  }
+  if (activeTab === 'subs') openSubModal();
+  else if (activeTab === 'budgets') openBudgetPickModal();
+  else openAddModal();
 };
 
+// ── Render ────────────────────────────────────────────────────────────────────
 function renderAll() {
   updateMonthLabel();
   updateSummary();
@@ -803,10 +747,7 @@ function renderAll() {
 }
 
 function updateMonthLabel() {
-  if (currentPeriod === 'all') {
-    document.getElementById('monthLabel').textContent = 'All time';
-    return;
-  }
+  if (currentPeriod === 'all') { document.getElementById('monthLabel').textContent = 'All time'; return; }
   const d = new Date(viewYear, viewMonth, 1);
   document.getElementById('monthLabel').textContent =
     d.toLocaleDateString('en-US', { month:'short', year:'2-digit' }).replace(' ', "'");
@@ -822,19 +763,14 @@ function updateSummary() {
   expenseEl.textContent = fmt(expense);
   const bal = income - expense;
   const balEl = document.getElementById('sumBalance');
-  balEl.textContent  = (bal < 0 ? '-' : '') + fmt(Math.abs(bal));
-  balEl.style.color  = bal < 0 ? 'var(--expense)' : 'var(--accent)';
+  balEl.textContent = (bal < 0 ? '-' : '') + fmt(Math.abs(bal));
+  balEl.style.color = bal < 0 ? 'var(--expense)' : 'var(--accent)';
   [incomeEl, expenseEl, balEl].forEach(fitSumValue);
 }
-
 function fitSumValue(el) {
   const maxPx = 15.2, minPx = 8.5, step = 0.5;
-  let size = maxPx;
-  el.style.fontSize = size + 'px';
-  while (el.scrollWidth > el.clientWidth && size > minPx) {
-    size -= step;
-    el.style.fontSize = size + 'px';
-  }
+  let size = maxPx; el.style.fontSize = size + 'px';
+  while (el.scrollWidth > el.clientWidth && size > minPx) { size -= step; el.style.fontSize = size + 'px'; }
 }
 
 function renderTransactions() {
@@ -851,17 +787,14 @@ function renderTransactions() {
     html += `<div class="tx-group-label">${formatDateLabel(date)}</div>`;
     groups[date].forEach(t => {
       const cat = catById(t.cat);
-      html += `
-        <div class="tx-card" onclick="window._editTx('${t._key}')">
-          <div class="tx-icon">${cat.icon}</div>
-          <div class="tx-info">
-            <div class="tx-name">${escHtml(t.name)}${t.subId ? ' <span class="recur-badge" title="Auto-added subscription">🔁</span>' : ''}</div>
-            <div class="tx-cat">${cat.name}</div>
-          </div>
-          <div class="tx-right">
-            <div class="tx-amount ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
-          </div>
-        </div>`;
+      html += `<div class="tx-card" onclick="window._editTx('${t._key}')">
+        <div class="tx-icon">${cat.icon}</div>
+        <div class="tx-info">
+          <div class="tx-name">${escHtml(t.name)}${t.subId ? ' <span class="recur-badge" title="Auto-added subscription">🔁</span>' : ''}</div>
+          <div class="tx-cat">${cat.name}</div>
+        </div>
+        <div class="tx-right"><div class="tx-amount ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div></div>
+      </div>`;
     });
   });
   el.innerHTML = html;
@@ -875,7 +808,7 @@ function formatDateLabel(dateStr) {
     if (diff === 0) return 'Today';
     if (diff === 1) return 'Yesterday';
   }
-  return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year: currentPeriod==='all' ? 'numeric' : undefined });
+  return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year: currentPeriod==='all'?'numeric':undefined });
 }
 
 function renderBudgets() {
@@ -889,33 +822,27 @@ function renderBudgets() {
   }
   let monthMultiplier = 1;
   if (currentPeriod === 'all') {
-    const allExpenseDates = Object.values(currentTx())
-      .filter(t => t.type === 'expense' && t.date)
-      .map(t => t.date.slice(0,7));
-    const distinctMonths = new Set(allExpenseDates);
+    const distinctMonths = new Set(Object.values(currentTx()).filter(t => t.type==='expense'&&t.date).map(t => t.date.slice(0,7)));
     monthMultiplier = Math.max(distinctMonths.size - 1, 1);
   }
   let html = '';
   EXPENSE_CATS.forEach(cat => {
-    const limit = budgets[cat.id] || 0;
-    if (!limit) return;
+    const limit = budgets[cat.id] || 0; if (!limit) return;
     const scaledLimit = limit * monthMultiplier;
     const spent = txs.filter(t => t.cat===cat.id).reduce((s,t) => s+t.amount, 0);
     const rawPct = (spent/scaledLimit)*100;
-    const pct   = Math.min(rawPct, 100);
-    const pctDisplay = Math.round(rawPct);
+    const pct = Math.min(rawPct, 100);
     const barCls = rawPct < 70 ? 'ok' : rawPct < 90 ? 'warn' : 'over';
-    html += `
-      <div class="budget-card" onclick="window._editBudgetCat('${cat.id}')">
-        <div class="budget-header">
-          <div class="budget-name">${cat.icon} ${cat.name}</div>
-          <div class="budget-right">
-            <div class="budget-nums"><span>${fmt(spent)}</span> / ${fmt(scaledLimit)}</div>
-            <span class="pct-pill ${barCls}">${pctDisplay}%</span>
-          </div>
+    html += `<div class="budget-card" onclick="window._editBudgetCat('${cat.id}')">
+      <div class="budget-header">
+        <div class="budget-name">${cat.icon} ${cat.name}</div>
+        <div class="budget-right">
+          <div class="budget-nums"><span>${fmt(spent)}</span> / ${fmt(scaledLimit)}</div>
+          <span class="pct-pill ${barCls}">${Math.round(rawPct)}%</span>
         </div>
-        <div class="bar-wrap"><div class="bar-fill ${barCls}" style="width:${pct}%"></div></div>
-      </div>`;
+      </div>
+      <div class="bar-wrap"><div class="bar-fill ${barCls}" style="width:${pct}%"></div></div>
+    </div>`;
   });
   el.innerHTML = html || `<div class="empty"><p>No budgets set.</p></div>`;
 }
@@ -933,44 +860,75 @@ function renderSubs() {
   entries.forEach(([key, sub]) => {
     const cat = catById(sub.cat);
     const active = sub.active !== false;
-    html += `
-      <div class="sub-card ${active ? '' : 'paused'}" onclick="window._editSub('${key}')">
-        <div class="sub-top">
-          <div class="tx-icon">${cat.icon}</div>
-          <div class="sub-info">
-            <div class="sub-name">${escHtml(sub.name)}</div>
-            <div class="sub-meta">Day ${sub.day || 1} of every month · ${cat.name}</div>
-          </div>
-          <div class="sub-amount ${sub.type}">${sub.type==='income'?'+':'-'}${fmt(sub.amount)}</div>
+    html += `<div class="sub-card ${active ? '' : 'paused'}" onclick="window._editSub('${key}')">
+      <div class="sub-top">
+        <div class="tx-icon">${cat.icon}</div>
+        <div class="sub-info">
+          <div class="sub-name">${escHtml(sub.name)}</div>
+          <div class="sub-meta">Day ${sub.day || 1} of every month · ${cat.name}</div>
         </div>
-      </div>`;
+        <div class="sub-amount ${sub.type}">${sub.type==='income'?'+':'-'}${fmt(sub.amount)}</div>
+      </div>
+    </div>`;
   });
   el.innerHTML = html;
 }
 
-let analyticsFilterCat = null;
+// ── Analytics — type + multi-select filter ────────────────────────────────────
+let analyticsType = 'expense'; // 'expense' | 'income'
+let analyticsFilterCats = new Set(); // empty = All
 
-function renderAnalyticsFilters() {
-  const txs = getFilteredTx().filter(t => t.type==='expense');
-  const el = document.getElementById('analyticsFilters');
-  if (!txs.length) { el.innerHTML = ''; return; }
-  const usedCatIds = [...new Set(txs.map(t => t.cat))];
-  const chips = usedCatIds.map(id => catById(id));
-  let html = `<div class="filter-chip ${analyticsFilterCat===null?'active':''}" onclick="window._setAnalyticsFilter(null)">All</div>`;
-  chips.forEach(c => {
-    const active = analyticsFilterCat === c.id;
-    html += `<div class="filter-chip ${active?'active':''}" onclick="window._setAnalyticsFilter('${c.id}')">${c.icon} ${c.name}</div>`;
-  });
-  el.innerHTML = html;
-}
-
-window._setAnalyticsFilter = function(catId) {
-  analyticsFilterCat = catId;
+window._setAnalyticsType = function(type) {
+  analyticsType = type;
+  analyticsFilterCats = new Set(); // reset category filter on type switch
+  document.getElementById('aTypeExpense').className = 'a-type-btn' + (type==='expense' ? ' active expense-active' : '');
+  document.getElementById('aTypeIncome').className  = 'a-type-btn' + (type==='income'  ? ' active income-active'  : '');
   renderAnalyticsFilters();
   renderAnalytics();
 };
 
+function getAnalyticsTxs() {
+  return getFilteredTx().filter(t => t.type === analyticsType);
+}
+
+function renderAnalyticsFilters() {
+  const txs = getAnalyticsTxs();
+  const el = document.getElementById('analyticsFilters');
+  if (!txs.length) { el.innerHTML = ''; return; }
+  // Collect ALL category ids that appear in these txs (preserving insertion order via Set)
+  const usedCatIds = [...new Set(txs.map(t => t.cat))];
+  const isAll = analyticsFilterCats.size === 0;
+  let html = `<div class="filter-chip all-chip ${isAll ? 'active' : ''}" onclick="window._clearAnalyticsFilter()">All</div>`;
+  usedCatIds.forEach(id => {
+    const c = catById(id);
+    const active = analyticsFilterCats.has(id);
+    html += `<div class="filter-chip cat-chip ${active ? 'active' : ''}" onclick="window._toggleAnalyticsFilter('${id}')">${c.icon} ${c.name}</div>`;
+  });
+  el.innerHTML = html;
+}
+
+window._clearAnalyticsFilter = function() {
+  analyticsFilterCats = new Set();
+  renderAnalyticsFilters();
+  renderAnalytics();
+};
+
+window._toggleAnalyticsFilter = function(catId) {
+  if (analyticsFilterCats.has(catId)) analyticsFilterCats.delete(catId);
+  else analyticsFilterCats.add(catId);
+  renderAnalyticsFilters();
+  renderAnalytics();
+};
+
+function getAnalyticsLabel() {
+  if (analyticsFilterCats.size === 0) return '';
+  if (analyticsFilterCats.size === 1) return ' · ' + catById([...analyticsFilterCats][0]).name;
+  return ` · ${analyticsFilterCats.size} categories`;
+}
+
 function renderLineGraph(txs) {
+  const isIncome = analyticsType === 'income';
+  const lineColor = isIncome ? 'var(--income)' : 'var(--accent)';
   let buckets = [];
   if (currentPeriod === 'month') {
     const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
@@ -981,10 +939,8 @@ function renderLineGraph(txs) {
   } else {
     const allDates = txs.map(t => t.date).sort();
     if (!allDates.length) return '';
-    const start = new Date(allDates[0] + 'T00:00:00');
-    const end = new Date(); end.setHours(0,0,0,0);
-    const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
-    const endCursor = new Date(end.getFullYear(), end.getMonth(), 1);
+    const cursor = new Date(new Date(allDates[0]+'T00:00:00').getFullYear(), new Date(allDates[0]+'T00:00:00').getMonth(), 1);
+    const endCursor = new Date(); endCursor.setDate(1); endCursor.setHours(0,0,0,0);
     while (cursor <= endCursor) {
       const mk = `${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}`;
       const label = cursor.toLocaleDateString('en-US', { month:'short', year:'2-digit' }).replace(' ',"'");
@@ -992,93 +948,83 @@ function renderLineGraph(txs) {
       cursor.setMonth(cursor.getMonth() + 1);
     }
   }
-
   const byBucket = {};
   txs.forEach(t => {
-    const bucketKey = currentPeriod === 'month' ? t.date : t.date.slice(0,7);
-    byBucket[bucketKey] = (byBucket[bucketKey]||0) + t.amount;
+    const k = currentPeriod === 'month' ? t.date : t.date.slice(0,7);
+    byBucket[k] = (byBucket[k]||0) + t.amount;
   });
   const values = buckets.map(b => byBucket[b.key] || 0);
   const total = values.reduce((s,v) => s+v, 0);
   const max = Math.max(...values, 1);
-
   const w = Math.max(buckets.length * (currentPeriod==='month' ? 26 : 52), 320);
   const h = 160, padTop = 14, padBottom = 24, padLeft = 38, padRight = 8;
   const chartH = h - padTop - padBottom;
-  const chartW = w - padLeft - padRight;
-  const stepX = chartW / Math.max(buckets.length - 1, 1);
-
-  const points = values.map((v, i) => {
-    const x = padLeft + i * stepX;
-    const y = padTop + chartH - (v / max) * chartH;
-    return { x, y, v, key: buckets[i].key, label: buckets[i].label };
-  });
-
+  const stepX = (w - padLeft - padRight) / Math.max(buckets.length - 1, 1);
+  const points = values.map((v, i) => ({
+    x: padLeft + i * stepX,
+    y: padTop + chartH - (v / max) * chartH,
+    v, label: buckets[i].label
+  }));
   const linePath = points.map((p,i) => `${i===0?'M':'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
   const areaPath = linePath + ` L${points[points.length-1].x.toFixed(1)},${padTop+chartH} L${points[0].x.toFixed(1)},${padTop+chartH} Z`;
-
-  const yTicks = [0, max/2, max];
-  const yGridLines = yTicks.map(v => {
-    const y = padTop + chartH - (v / max) * chartH;
+  const yGridLines = [0, max/2, max].map(v => {
+    const y = padTop + chartH - (v/max)*chartH;
     return `<line x1="${padLeft}" y1="${y.toFixed(1)}" x2="${w-padRight}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="2,3"/>
             <text x="${(padLeft-6).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="end" class="line-tooltip">${fmt(v)}</text>`;
   }).join('');
-
-  const labelEvery = currentPeriod === 'month' ? Math.ceil(buckets.length / 8) : Math.max(Math.ceil(buckets.length / 8), 1);
-  const labels = points.map((p,i) => {
+  const labelEvery = Math.max(Math.ceil(buckets.length / 8), 1);
+  const xLabels = points.map((p,i) => {
     if (i % labelEvery !== 0 && i !== points.length-1) return '';
     return `<text x="${p.x.toFixed(1)}" y="${h-6}" text-anchor="middle" class="line-tooltip">${p.label}</text>`;
   }).join('');
-
-  const dots = points.map(p => p.v > 0 ? `<circle class="line-point" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="var(--accent)"><title>${p.label}: ${fmt(p.v)}</title></circle>` : '').join('');
-
-  return `
-    <div class="line-wrap">
-      <div class="line-title">${currentPeriod==='month'?'Daily':'Monthly'} spending${analyticsFilterCat ? ' · ' + catById(analyticsFilterCat).name : ''}</div>
-      <div class="line-total">${fmt(total)}</div>
-      <div class="line-svg-wrap">
-        <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-          <defs>
-            <linearGradient id="lineFade" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.35"/>
-              <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          ${yGridLines}
-          <path d="${areaPath}" fill="url(#lineFade)" stroke="none"/>
-          <path d="${linePath}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-          ${dots}
-          ${labels}
-        </svg>
-      </div>
-    </div>`;
+  const dots = points.map(p => p.v > 0 ? `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${lineColor}"><title>${p.label}: ${fmt(p.v)}</title></circle>` : '').join('');
+  const typeLabel = isIncome ? 'income' : 'spending';
+  return `<div class="line-wrap">
+    <div class="line-title">${currentPeriod==='month'?'Daily':'Monthly'} ${typeLabel}${getAnalyticsLabel()}</div>
+    <div class="line-total" style="color:${lineColor}">${fmt(total)}</div>
+    <div class="line-svg-wrap">
+      <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+        <defs><linearGradient id="lineFade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="${lineColor}" stop-opacity="0"/>
+        </linearGradient></defs>
+        ${yGridLines}
+        <path d="${areaPath}" fill="url(#lineFade)" stroke="none"/>
+        <path d="${linePath}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${dots}${xLabels}
+      </svg>
+    </div>
+  </div>`;
 }
 
 function renderAnalytics() {
   renderAnalyticsFilters();
-  let txs = getFilteredTx().filter(t => t.type==='expense');
-  if (analyticsFilterCat) txs = txs.filter(t => t.cat === analyticsFilterCat);
-  const el  = document.getElementById('analyticsContent');
+  let txs = getAnalyticsTxs();
+  if (analyticsFilterCats.size > 0) {
+    txs = txs.filter(t => analyticsFilterCats.has(t.cat));
+  }
+  const el = document.getElementById('analyticsContent');
+  const isIncome = analyticsType === 'income';
+  const COLORS = ['#7c6aff','#b8ff6a','#ff6a9b','#6ab8ff','#ffb86a','#6affda','#ff9f6a','#da6aff'];
   if (!txs.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">📊</div><p>No expenses ${currentPeriod==='all'?'yet':'this month'}${analyticsFilterCat ? ' in this category' : ''}.</p></div>`;
+    const label = analyticsFilterCats.size > 0 ? ' in selected categories' : '';
+    el.innerHTML = `<div class="empty"><div class="empty-icon">${isIncome ? '💰' : '📊'}</div><p>No ${isIncome ? 'income' : 'expenses'} ${currentPeriod==='all'?'yet':'this month'}${label}.</p></div>`;
     return;
   }
-
   const lineHtml = renderLineGraph(txs);
   const total = txs.reduce((s,t) => s+t.amount, 0);
   const bycat = {};
   txs.forEach(t => { bycat[t.cat] = (bycat[t.cat]||0) + t.amount; });
   const sorted = Object.entries(bycat).sort((a,b) => b[1]-a[1]);
-  const COLORS = ['#7c6aff','#b8ff6a','#ff6a9b','#6ab8ff','#ffb86a','#6affda','#ff9f6a','#da6aff'];
   let offset = 0;
-  const r = 54, cx = 70, cy = 70, circ = 2*Math.PI*r;
-  let segments = '';
+  const r=54, cx=70, cy=70, circ=2*Math.PI*r;
+  let segs = '';
   sorted.forEach(([catId, amt], i) => {
     const dash = (amt/total)*circ;
-    segments += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${COLORS[i%COLORS.length]}" stroke-width="18" stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="${-offset}" />`;
+    segs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${COLORS[i%COLORS.length]}" stroke-width="18" stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="${-offset}"/>`;
     offset += dash;
   });
-  const legendItems = sorted.map(([catId, amt], i) => {
+  const legend = sorted.map(([catId, amt], i) => {
     const cat = catById(catId);
     const pct = Math.round((amt/total)*100);
     return `<div class="legend-item">
@@ -1087,40 +1033,36 @@ function renderAnalytics() {
       <div class="legend-pct">${pct}%</div>
     </div>`;
   }).join('');
-  el.innerHTML = `
-    <div class="analytics-section">
-      ${lineHtml}
-      <div class="donut-wrap">
-        <div class="donut-title">Spending breakdown${analyticsFilterCat ? ' · ' + catById(analyticsFilterCat).name : ''}</div>
-        <div class="donut-chart">
-          <svg class="donut" width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg)">
-            <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--surface2)" stroke-width="18"/>
-            ${segments}
-          </svg>
-          <div class="donut-legend">${legendItems}</div>
-        </div>
+  const breakdownTitle = isIncome ? 'Income breakdown' : 'Spending breakdown';
+  el.innerHTML = `<div class="analytics-section">
+    ${lineHtml}
+    <div class="donut-wrap">
+      <div class="donut-title">${breakdownTitle}${getAnalyticsLabel()}</div>
+      <div class="donut-chart">
+        <svg class="donut" width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg)">
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--surface2)" stroke-width="18"/>
+          ${segs}
+        </svg>
+        <div class="donut-legend">${legend}</div>
       </div>
-      ${sorted.map(([catId, amt], i) => {
-        const cat = catById(catId);
-        const pct = Math.round((amt/total)*100);
-        return `<div class="budget-card no-click">
-          <div class="budget-header">
-            <div class="budget-name" style="color:${COLORS[i%COLORS.length]}">${cat.icon} ${cat.name}</div>
-            <div class="budget-nums"><span>${fmt(amt)}</span> · ${pct}%</div>
-          </div>
-          <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${COLORS[i%COLORS.length]}"></div></div>
-        </div>`;
-      }).join('')}
-    </div>`;
+    </div>
+    ${sorted.map(([catId, amt], i) => {
+      const cat = catById(catId);
+      const pct = Math.round((amt/total)*100);
+      return `<div class="budget-card no-click">
+        <div class="budget-header">
+          <div class="budget-name" style="color:${COLORS[i%COLORS.length]}">${cat.icon} ${cat.name}</div>
+          <div class="budget-nums"><span>${fmt(amt)}</span> · ${pct}%</div>
+        </div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${COLORS[i%COLORS.length]}"></div></div>
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
 window.switchTab = function(name) {
-  document.querySelectorAll('.tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.tab === name);
-  });
-  document.querySelectorAll('.panel').forEach(p => {
-    p.classList.toggle('active', p.id === `panel-${name}`);
-  });
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === `panel-${name}`));
   updateFab(name);
   if (name === 'budgets')   renderBudgets();
   if (name === 'subs')      renderSubs();
@@ -1147,18 +1089,16 @@ window.openAddModal = function() {
   setType('expense');
   document.getElementById('txName').value   = '';
   document.getElementById('txAmount').value = '';
-  document.getElementById('txDate').value = getTodayLocal();
+  document.getElementById('txDate').value   = getTodayLocal();
   document.getElementById('addModalActions').innerHTML = `
     <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="saveTransaction()">Save</button>
-  `;
+    <button class="btn btn-primary" onclick="saveTransaction()">Save</button>`;
   document.getElementById('addModal').classList.add('open');
   setTimeout(() => document.getElementById('txName').focus(), 100);
 };
 
 window._editTx = function(key) {
-  const t = currentTx()[key];
-  if (!t) return;
+  const t = currentTx()[key]; if (!t) return;
   editingKey = key;
   document.getElementById('addModalTitle').textContent = 'Edit transaction';
   setType(t.type);
@@ -1168,8 +1108,7 @@ window._editTx = function(key) {
   document.getElementById('txDate').value   = t.date;
   document.getElementById('addModalActions').innerHTML = `
     <button class="btn btn-danger" onclick="deleteCurrentTx()">Delete</button>
-    <button class="btn btn-primary" onclick="saveTransaction()">Save</button>
-  `;
+    <button class="btn btn-primary" onclick="saveTransaction()">Save</button>`;
   document.getElementById('addModal').classList.add('open');
 };
 
@@ -1185,9 +1124,9 @@ window.setType = function(type) {
   document.getElementById('typeIncome').classList.toggle('active',  type==='income');
   const cats = type==='expense' ? EXPENSE_CATS : INCOME_CATS;
   const sel = document.getElementById('txCat');
-  const prevVal = sel.value;
+  const prev = sel.value;
   sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
-  if (cats.some(c => c.id === prevVal)) sel.value = prevVal;
+  if (cats.some(c => c.id === prev)) sel.value = prev;
 };
 
 window.saveTransaction = async function() {
@@ -1195,31 +1134,20 @@ window.saveTransaction = async function() {
   const amount = parseFloat(document.getElementById('txAmount').value);
   const cat    = document.getElementById('txCat').value;
   const date   = document.getElementById('txDate').value;
-  if (!name || isNaN(amount) || amount <= 0 || !date) {
-    alert('Please fill in all fields with a valid amount.');
-    return;
-  }
+  if (!name || isNaN(amount) || amount <= 0 || !date) { alert('Please fill in all fields with a valid amount.'); return; }
   const txPath = WALLETS[currentWallet].txPath;
   setSyncStatus('syncing', 'saving…');
   try {
-    if (editingKey) {
-      await update(ref(db, `${txPath}/${editingKey}`), { type: currentType, name, amount, cat, date });
-    } else {
-      await push(ref(db, txPath), { type: currentType, name, amount, cat, date });
-    }
+    if (editingKey) await update(ref(db, `${txPath}/${editingKey}`), { type: currentType, name, amount, cat, date });
+    else await push(ref(db, txPath), { type: currentType, name, amount, cat, date });
     setSyncStatus('ok', 'synced');
     document.getElementById('addModal').classList.remove('open');
     editingKey = null;
-  } catch(err) {
-    setSyncStatus('err', 'save failed');
-    alert('Failed to save. Check your connection.');
-    console.error(err);
-  }
+  } catch(err) { setSyncStatus('err', 'save failed'); alert('Failed to save. Check your connection.'); console.error(err); }
 };
 
 window.deleteCurrentTx = async function() {
-  if (!editingKey) return;
-  if (!confirm('Delete this transaction?')) return;
+  if (!editingKey || !confirm('Delete this transaction?')) return;
   const txPath = WALLETS[currentWallet].txPath;
   setSyncStatus('syncing', 'deleting…');
   try {
@@ -1227,18 +1155,14 @@ window.deleteCurrentTx = async function() {
     setSyncStatus('ok', 'synced');
     document.getElementById('addModal').classList.remove('open');
     editingKey = null;
-  } catch(err) {
-    setSyncStatus('err', 'delete failed');
-    console.error(err);
-  }
+  } catch(err) { setSyncStatus('err', 'delete failed'); console.error(err); }
 };
 
-// ── Budget: per-category edit modal ──────────────────────────────────────────
+// ── Budget modals ─────────────────────────────────────────────────────────────
 let editingBudgetCatId = null;
 
 window.openBudgetPickModal = function() {
   const budgets = currentBudgets();
-  // Show only categories that don't yet have a budget set
   const available = EXPENSE_CATS.filter(c => !budgets[c.id]);
   const listEl = document.getElementById('budgetPickList');
   if (!available.length) {
@@ -1247,9 +1171,7 @@ window.openBudgetPickModal = function() {
     listEl.innerHTML = available.map(cat => `
       <div class="tx-card" onclick="window._openNewBudgetCat('${cat.id}')">
         <div class="tx-icon">${cat.icon}</div>
-        <div class="tx-info">
-          <div class="tx-name">${cat.name}</div>
-        </div>
+        <div class="tx-info"><div class="tx-name">${cat.name}</div></div>
         <div style="color:var(--text2);font-size:0.8rem;">Set limit →</div>
       </div>`).join('');
   }
@@ -1260,10 +1182,7 @@ window._openNewBudgetCat = function(catId) {
   document.getElementById('budgetPickModal').classList.remove('open');
   openBudgetCatModal(catId, false);
 };
-
-window._editBudgetCat = function(catId) {
-  openBudgetCatModal(catId, true);
-};
+window._editBudgetCat = function(catId) { openBudgetCatModal(catId, true); };
 
 function openBudgetCatModal(catId, isEdit) {
   editingBudgetCatId = catId;
@@ -1287,7 +1206,6 @@ window.closeBudgetCatModal = function(e) {
   document.getElementById('budgetCatModal').classList.remove('open');
   editingBudgetCatId = null;
 };
-
 window.closeBudgetPickModal = function(e) {
   if (e && e.target !== document.getElementById('budgetPickModal')) return;
   document.getElementById('budgetPickModal').classList.remove('open');
@@ -1295,48 +1213,34 @@ window.closeBudgetPickModal = function(e) {
 
 window.saveBudgetCat = async function() {
   const amount = parseFloat(document.getElementById('budgetCatAmount').value);
-  if (isNaN(amount) || amount <= 0) {
-    alert('Please enter a valid amount.');
-    return;
-  }
-  const budgetPath = WALLETS[currentWallet].budgetPath;
+  if (isNaN(amount) || amount <= 0) { alert('Please enter a valid amount.'); return; }
   setSyncStatus('syncing', 'saving…');
   try {
-    await update(ref(db, budgetPath), { [editingBudgetCatId]: amount });
+    await update(ref(db, WALLETS[currentWallet].budgetPath), { [editingBudgetCatId]: amount });
     setSyncStatus('ok', 'synced');
     document.getElementById('budgetCatModal').classList.remove('open');
     editingBudgetCatId = null;
-  } catch(err) {
-    setSyncStatus('err', 'save failed');
-    console.error(err);
-  }
+  } catch(err) { setSyncStatus('err', 'save failed'); console.error(err); }
 };
 
 window.deleteBudgetCat = async function() {
-  if (!editingBudgetCatId) return;
-  if (!confirm('Remove this budget limit?')) return;
-  const budgetPath = WALLETS[currentWallet].budgetPath;
+  if (!editingBudgetCatId || !confirm('Remove this budget limit?')) return;
   setSyncStatus('syncing', 'deleting…');
   try {
-    await update(ref(db, budgetPath), { [editingBudgetCatId]: null });
+    await update(ref(db, WALLETS[currentWallet].budgetPath), { [editingBudgetCatId]: null });
     setSyncStatus('ok', 'synced');
     document.getElementById('budgetCatModal').classList.remove('open');
     editingBudgetCatId = null;
-  } catch(err) {
-    setSyncStatus('err', 'delete failed');
-    console.error(err);
-  }
+  } catch(err) { setSyncStatus('err', 'delete failed'); console.error(err); }
 };
 
-// ── Legacy bulk budget modal (kept but not surfaced) ─────────────────────────
 window.openBudgetModal = function() {
   const budgets = currentBudgets();
   document.getElementById('budgetEditList').innerHTML = EXPENSE_CATS.map(c => `
     <div class="budget-edit-row">
       <div class="cat-icon">${c.icon}</div>
       <span>${c.name}</span>
-      <input type="number" id="budget_${c.id}" placeholder="0" min="0" inputmode="decimal"
-        value="${budgets[c.id] || ''}" />
+      <input type="number" id="budget_${c.id}" placeholder="0" min="0" inputmode="decimal" value="${budgets[c.id]||''}"/>
     </div>`).join('');
   document.getElementById('budgetModal').classList.add('open');
 };
@@ -1346,23 +1250,16 @@ window.closeBudgetModal = function(e) {
 };
 window.saveBudgets = async function() {
   const newBudgets = {};
-  EXPENSE_CATS.forEach(c => {
-    const val = parseFloat(document.getElementById(`budget_${c.id}`).value);
-    if (val > 0) newBudgets[c.id] = val;
-  });
-  const budgetPath = WALLETS[currentWallet].budgetPath;
+  EXPENSE_CATS.forEach(c => { const v = parseFloat(document.getElementById(`budget_${c.id}`).value); if (v>0) newBudgets[c.id]=v; });
   setSyncStatus('syncing', 'saving…');
   try {
-    await set(ref(db, budgetPath), newBudgets);
+    await set(ref(db, WALLETS[currentWallet].budgetPath), newBudgets);
     setSyncStatus('ok', 'synced');
     document.getElementById('budgetModal').classList.remove('open');
-  } catch(err) {
-    setSyncStatus('err', 'save failed');
-    console.error(err);
-  }
+  } catch(err) { setSyncStatus('err', 'save failed'); console.error(err); }
 };
 
-// ── Subscription modal ──────────────────────────────────────────────────────
+// ── Subscription modal ────────────────────────────────────────────────────────
 let editingSubKey = null;
 let currentSubType = 'expense';
 let subActiveState = true;
@@ -1381,9 +1278,9 @@ window.setSubType = function(type) {
   document.getElementById('subTypeIncome').classList.toggle('active',  type==='income');
   const cats = type==='expense' ? EXPENSE_CATS : INCOME_CATS;
   const sel = document.getElementById('subCat');
-  const prevVal = sel.value;
+  const prev = sel.value;
   sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
-  if (cats.some(c => c.id === prevVal)) sel.value = prevVal;
+  if (cats.some(c => c.id === prev)) sel.value = prev;
 };
 
 window.toggleSubActive = function() {
@@ -1392,27 +1289,24 @@ window.toggleSubActive = function() {
 };
 
 window.openSubModal = function() {
-  editingSubKey = null;
-  subActiveState = true;
+  editingSubKey = null; subActiveState = true;
   document.getElementById('subModalTitle').textContent = 'Add subscription';
   setSubType('expense');
   document.getElementById('subName').value   = '';
   document.getElementById('subAmount').value = '';
-  populateSubDayOptions(new Date().getDate() > 28 ? 28 : new Date().getDate());
+  const tod = new Date().getDate();
+  populateSubDayOptions(tod > 28 ? 28 : tod);
   document.getElementById('subActiveSwitch').classList.add('on');
   document.getElementById('subModalActions').innerHTML = `
     <button class="btn btn-ghost" onclick="closeSubModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="saveSubscription()">Save</button>
-  `;
+    <button class="btn btn-primary" onclick="saveSubscription()">Save</button>`;
   document.getElementById('subModal').classList.add('open');
   setTimeout(() => document.getElementById('subName').focus(), 100);
 };
 
 window._editSub = function(key) {
-  const sub = currentSubs()[key];
-  if (!sub) return;
-  editingSubKey = key;
-  subActiveState = sub.active !== false;
+  const sub = currentSubs()[key]; if (!sub) return;
+  editingSubKey = key; subActiveState = sub.active !== false;
   document.getElementById('subModalTitle').textContent = 'Edit subscription';
   setSubType(sub.type);
   document.getElementById('subName').value   = sub.name;
@@ -1422,8 +1316,7 @@ window._editSub = function(key) {
   document.getElementById('subActiveSwitch').classList.toggle('on', subActiveState);
   document.getElementById('subModalActions').innerHTML = `
     <button class="btn btn-danger" onclick="deleteCurrentSub()">Delete</button>
-    <button class="btn btn-primary" onclick="saveSubscription()">Save</button>
-  `;
+    <button class="btn btn-primary" onclick="saveSubscription()">Save</button>`;
   document.getElementById('subModal').classList.add('open');
 };
 
@@ -1438,20 +1331,14 @@ window.saveSubscription = async function() {
   const amount = parseFloat(document.getElementById('subAmount').value);
   const cat    = document.getElementById('subCat').value;
   const day    = parseInt(document.getElementById('subDay').value, 10);
-  if (!name || isNaN(amount) || amount <= 0) {
-    alert('Please fill in all fields with a valid amount.');
-    return;
-  }
+  if (!name || isNaN(amount) || amount <= 0) { alert('Please fill in all fields with a valid amount.'); return; }
   const subPath = WALLETS[currentWallet].subPath;
   setSyncStatus('syncing', 'saving…');
   try {
     if (editingSubKey) {
       const existing = currentSubs()[editingSubKey] || {};
-      const wasPaused = existing.active === false;
       const patch = { type: currentSubType, name, amount, cat, day, active: subActiveState };
-      if (wasPaused && subActiveState) {
-        patch.lastAdded = decrementMonthKey(actualNowMK());
-      }
+      if (existing.active === false && subActiveState) patch.lastAdded = decrementMonthKey(actualNowMK());
       await update(ref(db, `${subPath}/${editingSubKey}`), patch);
     } else {
       await push(ref(db, subPath), { type: currentSubType, name, amount, cat, day, active: subActiveState });
@@ -1459,16 +1346,11 @@ window.saveSubscription = async function() {
     setSyncStatus('ok', 'synced');
     document.getElementById('subModal').classList.remove('open');
     editingSubKey = null;
-  } catch(err) {
-    setSyncStatus('err', 'save failed');
-    alert('Failed to save. Check your connection.');
-    console.error(err);
-  }
+  } catch(err) { setSyncStatus('err', 'save failed'); alert('Failed to save. Check your connection.'); console.error(err); }
 };
 
 window.deleteCurrentSub = async function() {
-  if (!editingSubKey) return;
-  if (!confirm('Delete this subscription? Past transactions it already created will stay.')) return;
+  if (!editingSubKey || !confirm('Delete this subscription? Past transactions it already created will stay.')) return;
   const subPath = WALLETS[currentWallet].subPath;
   setSyncStatus('syncing', 'deleting…');
   try {
@@ -1476,16 +1358,12 @@ window.deleteCurrentSub = async function() {
     setSyncStatus('ok', 'synced');
     document.getElementById('subModal').classList.remove('open');
     editingSubKey = null;
-  } catch(err) {
-    setSyncStatus('err', 'delete failed');
-    console.error(err);
-  }
+  } catch(err) { setSyncStatus('err', 'delete failed'); console.error(err); }
 };
 
 setType('expense');
 updateMonthLabel();
 
-// ── Theme toggle ───────────────────────────────────────────────────────────────
 let currentTheme = 'dark';
 window.toggleTheme = function() {
   currentTheme = currentTheme === 'dark' ? 'forest' : 'dark';
