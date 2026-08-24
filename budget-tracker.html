@@ -278,6 +278,13 @@
   .line-svg-wrap::-webkit-scrollbar { display: none; }
   .line-point { cursor: pointer; }
   .line-tooltip { font-family: 'Space Mono', monospace; font-size: 9px; fill: var(--text2); }
+  .fx-note {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: 9px 12px;
+    font-size: 0.7rem; color: var(--text2);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .fx-note strong { color: var(--text); font-family: 'Space Mono', monospace; }
   .empty { text-align: center; padding: 40px 20px; color: var(--text2); }
   .empty-icon { font-size: 2.2rem; margin-bottom: 10px; }
   .empty p { font-size: 0.85rem; }
@@ -496,10 +503,19 @@
       <div class="tx-icon" id="budgetCatIcon" style="font-size:22px;width:44px;height:44px;border-radius:12px;"></div>
       <div>
         <div style="font-weight:700;font-size:1rem;" id="budgetCatName"></div>
-        <div style="font-size:0.75rem;color:var(--text2);">Monthly spending limit</div>
+        <div style="font-size:0.75rem;color:var(--text2);">Monthly spending limit · both currencies</div>
       </div>
     </div>
-    <div class="field"><label>Limit amount</label><input type="number" id="budgetCatAmount" placeholder="0" min="0" inputmode="decimal" /></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field" style="margin-bottom:0;">
+        <label>¥ JPY limit</label>
+        <input type="number" id="budgetCatJpy" placeholder="0" min="0" inputmode="decimal" />
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>฿ THB limit</label>
+        <input type="number" id="budgetCatThb" placeholder="0" min="0" inputmode="decimal" />
+      </div>
+    </div>
     <div class="modal-actions" id="budgetCatActions">
       <button class="btn btn-ghost" onclick="closeBudgetCatModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveBudgetCat()">Save</button>
@@ -514,7 +530,7 @@
       <span>Add budget limit</span>
       <button class="modal-close" onclick="closeBudgetPickModal()">✕</button>
     </div>
-    <p style="font-size:0.82rem;color:var(--text2);margin-bottom:14px;">Choose a category to set a monthly spending limit for:</p>
+    <p style="font-size:0.82rem;color:var(--text2);margin-bottom:14px;">Set JPY and/or THB limits for each category. The Budgets tab combines both and shows the total in THB.</p>
     <div id="budgetPickList" style="display:flex;flex-direction:column;gap:8px;"></div>
   </div>
 </div>
@@ -585,6 +601,93 @@ const WALLETS = {
 let currentWallet = 'JPY';
 let currentPeriod = 'month';
 
+// ── FX: JPY -> THB, THB is the combined budget base currency ────────────────
+const FX_API = 'https://api.frankfurter.dev/v2/rate/JPY/THB';
+const FX_CACHE_KEY = 'budgetTracker.jpyToThb';
+const FX_CACHE_TTL = 6 * 60 * 60 * 1000;
+let jpyToThbRate = null;
+let fxRateDate = null;
+let fxLoading = false;
+
+async function loadJpyToThbRate() {
+  if (fxLoading) return;
+  fxLoading = true;
+
+  try {
+    const cached = JSON.parse(localStorage.getItem(FX_CACHE_KEY) || 'null');
+    if (cached && Number.isFinite(cached.rate) && (Date.now() - cached.savedAt) < FX_CACHE_TTL) {
+      jpyToThbRate = cached.rate;
+      fxRateDate = cached.date || null;
+      renderAll();
+      return;
+    }
+
+    const res = await fetch(FX_API, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`FX HTTP ${res.status}`);
+
+    const data = await res.json();
+    const rate = Number(data?.rate);
+    if (!Number.isFinite(rate) || rate <= 0) throw new Error('Invalid JPY/THB rate');
+
+    jpyToThbRate = rate;
+    fxRateDate = data.date || null;
+    localStorage.setItem(FX_CACHE_KEY, JSON.stringify({
+      rate: jpyToThbRate,
+      date: fxRateDate,
+      savedAt: Date.now()
+    }));
+    renderAll();
+  } catch (err) {
+    // Keep the last known rate if the API is temporarily unavailable.
+    try {
+      const cached = JSON.parse(localStorage.getItem(FX_CACHE_KEY) || 'null');
+      if (cached && Number.isFinite(cached.rate)) {
+        jpyToThbRate = cached.rate;
+        fxRateDate = cached.date || null;
+      }
+    } catch (_) {}
+    console.error('FX rate fetch failed:', err);
+    renderAll();
+  } finally {
+    fxLoading = false;
+  }
+}
+
+function fmtThb(n) {
+  if (Math.abs(n) >= 10000) return '฿' + Math.round(n).toLocaleString();
+  return '฿' + n.toFixed(0);
+}
+
+function combinedBudgetValue(jpyAmount, thbAmount) {
+  if (jpyAmount > 0 && jpyToThbRate == null) return null;
+  return thbAmount + (jpyAmount * (jpyToThbRate || 0));
+}
+
+function getCombinedExpenseTxs() {
+  const wallets = ['JPY', 'THB'];
+  const result = [];
+
+  wallets.forEach(wid => {
+    Object.values(walletData[wid].transactions || {}).forEach(t => {
+      if (t.type !== 'expense' || !t.date) return;
+      if (currentPeriod === 'month' && !t.date.startsWith(currentMK())) return;
+      result.push({ ...t, wallet: wid });
+    });
+  });
+
+  return result;
+}
+
+function getCombinedDistinctMonths() {
+  const months = new Set();
+  ['JPY', 'THB'].forEach(wid => {
+    Object.values(walletData[wid].transactions || {}).forEach(t => {
+      if (t.type === 'expense' && t.date) months.add(t.date.slice(0, 7));
+    });
+  });
+  return months;
+}
+
 const EXPENSE_CATS = [
   { id:'food',        name:'Food',         icon:'🥬' },
   { id:'shopping',    name:'Shopping',     icon:'🛍️' },
@@ -636,6 +739,8 @@ Object.entries(WALLETS).forEach(([wid, w]) => {
     renderAll();
   });
 });
+loadJpyToThbRate();
+setInterval(loadJpyToThbRate, FX_CACHE_TTL);
 
 // ── Subscriptions engine ──────────────────────────────────────────────────────
 const subProcessing = new Set();
@@ -812,41 +917,100 @@ function formatDateLabel(dateStr) {
 }
 
 function renderBudgets() {
-  const budgets = currentBudgets();
-  const txs = getFilteredTx().filter(t => t.type==='expense');
-  const el  = document.getElementById('budgetList');
-  const hasBudgets = EXPENSE_CATS.some(c => budgets[c.id] > 0);
+  const el = document.getElementById('budgetList');
+  const jpyBudgets = walletData.JPY.budgets || {};
+  const thbBudgets = walletData.THB.budgets || {};
+
+  const hasBudgets = EXPENSE_CATS.some(cat =>
+    Number(jpyBudgets[cat.id] || 0) > 0 || Number(thbBudgets[cat.id] || 0) > 0
+  );
+
   if (!hasBudgets) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><p>No budgets set yet.<br>Tap + to add a category limit.</p></div>`;
     return;
   }
+
+  const allTxs = getCombinedExpenseTxs();
+
   let monthMultiplier = 1;
   if (currentPeriod === 'all') {
-    const distinctMonths = new Set(Object.values(currentTx()).filter(t => t.type==='expense'&&t.date).map(t => t.date.slice(0,7)));
+    const distinctMonths = getCombinedDistinctMonths();
     monthMultiplier = Math.max(distinctMonths.size - 1, 1);
   }
-  let html = '';
+
+  const rateAvailable = Number.isFinite(jpyToThbRate) && jpyToThbRate > 0;
+  const rateText = rateAvailable
+    ? `1 JPY = ${jpyToThbRate.toFixed(4)} THB${fxRateDate ? ` · ${fxRateDate}` : ''}`
+    : 'FX unavailable — JPY amounts are shown separately';
+
+  let html = `
+    <div class="fx-note">
+      <span>Budget base</span>
+      <strong>${rateText}</strong>
+    </div>`;
+
   EXPENSE_CATS.forEach(cat => {
-    const limit = budgets[cat.id] || 0; if (!limit) return;
-    const scaledLimit = limit * monthMultiplier;
-    const spent = txs.filter(t => t.cat===cat.id).reduce((s,t) => s+t.amount, 0);
-    const rawPct = (spent/scaledLimit)*100;
+    const jpyLimit = Number(jpyBudgets[cat.id] || 0);
+    const thbLimit = Number(thbBudgets[cat.id] || 0);
+
+    const jpyTx = allTxs
+      .filter(t => t.wallet === 'JPY' && t.cat === cat.id)
+      .reduce((s, t) => s + Number(t.amount || 0), 0);
+    const thbTx = allTxs
+      .filter(t => t.wallet === 'THB' && t.cat === cat.id)
+      .reduce((s, t) => s + Number(t.amount || 0), 0);
+
+    const scaledJpyLimit = jpyLimit * monthMultiplier;
+    const scaledThbLimit = thbLimit * monthMultiplier;
+    const scaledJpyTx = jpyTx;
+    const scaledThbTx = thbTx;
+
+    if (!jpyLimit && !thbLimit) return;
+
+    if (!rateAvailable && jpyLimit > 0) {
+      const jpyPct = scaledJpyLimit > 0 ? (scaledJpyTx / scaledJpyLimit) * 100 : 0;
+      const jpyBarPct = Math.min(jpyPct, 100);
+      const jpyBarCls = jpyPct < 70 ? 'ok' : jpyPct < 90 ? 'warn' : 'over';
+
+      html += `<div class="budget-card" onclick="window._editBudgetCat('${cat.id}')">
+        <div class="budget-header">
+          <div class="budget-name">${cat.icon} ${cat.name}</div>
+          <div class="budget-right">
+            <div class="budget-nums"><span>¥${Math.round(scaledJpyTx).toLocaleString()}</span> / ¥${Math.round(scaledJpyLimit).toLocaleString()}</div>
+            <span class="pct-pill ${jpyBarCls}">${Math.round(jpyPct)}%</span>
+          </div>
+        </div>
+        <div class="bar-wrap"><div class="bar-fill ${jpyBarCls}" style="width:${jpyBarPct}%"></div></div>
+        <div style="font-size:0.65rem;color:var(--text2);margin-top:6px;">
+          JPY ${jpyLimit.toLocaleString()} · THB ${thbLimit.toLocaleString()}
+        </div>
+      </div>`;
+      return;
+    }
+
+    const combinedLimit = scaledThbLimit + (scaledJpyLimit * jpyToThbRate);
+    const combinedSpent = scaledThbTx + (scaledJpyTx * jpyToThbRate);
+    const rawPct = combinedLimit > 0 ? (combinedSpent / combinedLimit) * 100 : 0;
     const pct = Math.min(rawPct, 100);
     const barCls = rawPct < 70 ? 'ok' : rawPct < 90 ? 'warn' : 'over';
+
     html += `<div class="budget-card" onclick="window._editBudgetCat('${cat.id}')">
       <div class="budget-header">
         <div class="budget-name">${cat.icon} ${cat.name}</div>
         <div class="budget-right">
-          <div class="budget-nums"><span>${fmt(spent)}</span> / ${fmt(scaledLimit)}</div>
+          <div class="budget-nums"><span>฿${Math.round(combinedSpent).toLocaleString()}</span> / ฿${Math.round(combinedLimit).toLocaleString()}</div>
           <span class="pct-pill ${barCls}">${Math.round(rawPct)}%</span>
         </div>
       </div>
       <div class="bar-wrap"><div class="bar-fill ${barCls}" style="width:${pct}%"></div></div>
+      <div style="font-size:0.65rem;color:var(--text2);margin-top:6px;">
+        JPY ${jpyLimit.toLocaleString()} + THB ${thbLimit.toLocaleString()}
+      </div>
     </div>`;
   });
+
   el.innerHTML = html || `<div class="empty"><p>No budgets set.</p></div>`;
 }
-
 function renderSubs() {
   const subs = currentSubs();
   const el = document.getElementById('subsList');
@@ -1162,8 +1326,9 @@ window.deleteCurrentTx = async function() {
 let editingBudgetCatId = null;
 
 window.openBudgetPickModal = function() {
-  const budgets = currentBudgets();
-  const available = EXPENSE_CATS.filter(c => !budgets[c.id]);
+  const jpyBudgets = walletData.JPY.budgets || {};
+  const thbBudgets = walletData.THB.budgets || {};
+  const available = EXPENSE_CATS.filter(c => !jpyBudgets[c.id] && !thbBudgets[c.id]);
   const listEl = document.getElementById('budgetPickList');
   if (!available.length) {
     listEl.innerHTML = `<div class="empty" style="padding:20px 0"><p>All categories already have limits set.<br>Tap any category card to edit it.</p></div>`;
@@ -1187,18 +1352,20 @@ window._editBudgetCat = function(catId) { openBudgetCatModal(catId, true); };
 function openBudgetCatModal(catId, isEdit) {
   editingBudgetCatId = catId;
   const cat = catById(catId);
-  const budgets = currentBudgets();
-  document.getElementById('budgetCatModalTitle').textContent = isEdit ? 'Edit budget limit' : 'Set budget limit';
+  const jpyBudgets = walletData.JPY.budgets || {};
+  const thbBudgets = walletData.THB.budgets || {};
+  document.getElementById('budgetCatModalTitle').textContent = isEdit ? 'Edit budget limits' : 'Set budget limits';
   document.getElementById('budgetCatIcon').textContent = cat.icon;
   document.getElementById('budgetCatName').textContent = cat.name;
-  document.getElementById('budgetCatAmount').value = budgets[catId] || '';
+  document.getElementById('budgetCatJpy').value = jpyBudgets[catId] || '';
+  document.getElementById('budgetCatThb').value = thbBudgets[catId] || '';
   document.getElementById('budgetCatActions').innerHTML = isEdit
     ? `<button class="btn btn-danger" onclick="deleteBudgetCat()">Remove</button>
        <button class="btn btn-primary" onclick="saveBudgetCat()">Save</button>`
     : `<button class="btn btn-ghost" onclick="closeBudgetCatModal()">Cancel</button>
        <button class="btn btn-primary" onclick="saveBudgetCat()">Save</button>`;
   document.getElementById('budgetCatModal').classList.add('open');
-  setTimeout(() => document.getElementById('budgetCatAmount').focus(), 100);
+  setTimeout(() => document.getElementById('budgetCatJpy').focus(), 100);
 }
 
 window.closeBudgetCatModal = function(e) {
@@ -1212,11 +1379,18 @@ window.closeBudgetPickModal = function(e) {
 };
 
 window.saveBudgetCat = async function() {
-  const amount = parseFloat(document.getElementById('budgetCatAmount').value);
-  if (isNaN(amount) || amount <= 0) { alert('Please enter a valid amount.'); return; }
+  const jpy = parseFloat(document.getElementById('budgetCatJpy').value) || 0;
+  const thb = parseFloat(document.getElementById('budgetCatThb').value) || 0;
+  if (jpy < 0 || thb < 0 || (jpy === 0 && thb === 0)) {
+    alert('Enter at least one budget amount greater than 0.');
+    return;
+  }
   setSyncStatus('syncing', 'saving…');
   try {
-    await update(ref(db, WALLETS[currentWallet].budgetPath), { [editingBudgetCatId]: amount });
+    await update(ref(db), {
+      [`${WALLETS.JPY.budgetPath}/${editingBudgetCatId}`]: jpy > 0 ? jpy : null,
+      [`${WALLETS.THB.budgetPath}/${editingBudgetCatId}`]: thb > 0 ? thb : null
+    });
     setSyncStatus('ok', 'synced');
     document.getElementById('budgetCatModal').classList.remove('open');
     editingBudgetCatId = null;
@@ -1224,10 +1398,13 @@ window.saveBudgetCat = async function() {
 };
 
 window.deleteBudgetCat = async function() {
-  if (!editingBudgetCatId || !confirm('Remove this budget limit?')) return;
+  if (!editingBudgetCatId || !confirm('Remove this budget limit from both JPY and THB?')) return;
   setSyncStatus('syncing', 'deleting…');
   try {
-    await update(ref(db, WALLETS[currentWallet].budgetPath), { [editingBudgetCatId]: null });
+    await update(ref(db), {
+      [`${WALLETS.JPY.budgetPath}/${editingBudgetCatId}`]: null,
+      [`${WALLETS.THB.budgetPath}/${editingBudgetCatId}`]: null
+    });
     setSyncStatus('ok', 'synced');
     document.getElementById('budgetCatModal').classList.remove('open');
     editingBudgetCatId = null;
